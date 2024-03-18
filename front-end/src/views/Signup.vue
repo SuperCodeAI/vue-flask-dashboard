@@ -1,6 +1,8 @@
 <script setup>
 import { onBeforeUnmount, onBeforeMount } from "vue";
+import { ref } from 'vue'
 import { useStore } from "vuex";
+import axios from 'axios';
 
 import Navbar from "@/examples/PageLayout/Navbar.vue";
 import AppFooter from "@/examples/PageLayout/Footer.vue";
@@ -8,6 +10,30 @@ import ArgonInput from "@/components/ArgonInput.vue";
 import ArgonCheckbox from "@/components/ArgonCheckbox.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
 const body = document.getElementsByTagName("body")[0];
+
+const name = ref('');
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+
+const submitForm = async () => {
+  if (password.value !== confirmPassword.value) {
+    alert('비밀번호가 일치하지 않습니다.');
+    return; // 비밀번호가 일치하지 않으면 여기서 처리를 중단합니다.
+  }
+  const formData = {
+    name: name.value,
+    email: email.value,
+    password: password.value,
+  };
+
+  try {
+    const response = await axios.post('http://localhost:5000/api/signup', formData);
+    console.log(response.data); // Handle response
+  } catch (error) {
+    console.error(error); // Handle error
+  }
+};
 
 const store = useStore();
 onBeforeMount(() => {
@@ -170,7 +196,7 @@ onBeforeUnmount(() => {
               </div>
             </div>
             <div class="card-body">
-              <form role="form">
+              <form @submit.prevent="submitForm">
                 <argon-input
                   id="name"
                   type="text"
@@ -189,6 +215,12 @@ onBeforeUnmount(() => {
                   placeholder="Password"
                   aria-label="Password"
                 />
+                <argon-input
+                  id="confirm_password"
+                  type="password"
+                  placeholder="confirm_Password"
+                  aria-label="confirm_Password"
+                />
                 <argon-checkbox checked>
                   <label class="form-check-label" for="flexCheckDefault">
                     I agree the
@@ -198,7 +230,7 @@ onBeforeUnmount(() => {
                   </label>
                 </argon-checkbox>
                 <div class="text-center">
-                  <argon-button
+                  <argon-button @click="submitForm"
                     fullWidth
                     color="dark"
                     variant="gradient"
