@@ -7,7 +7,6 @@ import axios from 'axios';
 import Navbar from "@/examples/PageLayout/Navbar.vue";
 import AppFooter from "@/examples/PageLayout/Footer.vue";
 import ArgonInput from "@/components/ArgonInput.vue";
-import ArgonCheckbox from "@/components/ArgonCheckbox.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
 const body = document.getElementsByTagName("body")[0];
 
@@ -61,20 +60,20 @@ onBeforeUnmount(() => {
   </div>
   <main class="main-content mt-0">
     <div
-      class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg"
-      style="
-        background-image: url(&quot;https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg&quot;);
-        background-position: top;
-      "
-    >
+  class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg"
+  :style="{
+    backgroundImage: 'url(' + require('@/assets/img/cloud_background.png') + ')',
+    backgroundPosition: 'top',
+  }"
+>
       <span class="mask bg-gradient-dark opacity-6"></span>
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-5 text-center mx-auto">
-            <h1 class="text-white mb-2 mt-5">Welcome!</h1>
+            <h1 class="text-white mb-4 mt-4">안녕하세요</h1>
             <p class="text-lead text-white">
-              Use these awesome forms to login or create new account in your
-              project for free.
+              CCRC 연구센터 병렬학습 프레임워크 대시보드에 오신 것을 환영합니다.
+              먼저 회원가입을 진행해주시길 바랍니다.
             </p>
           </div>
         </div>
@@ -202,35 +201,32 @@ onBeforeUnmount(() => {
                   type="text"
                   placeholder="Name"
                   aria-label="Name"
+                  v-model="name"
                 />
                 <argon-input
                   id="email"
                   type="email"
                   placeholder="Email"
                   aria-label="Email"
+                  v-model="email"
                 />
                 <argon-input
                   id="password"
                   type="password"
                   placeholder="Password"
                   aria-label="Password"
+                  v-model="password"
                 />
                 <argon-input
                   id="confirm_password"
                   type="password"
                   placeholder="confirm_Password"
                   aria-label="confirm_Password"
+                  v-model="confirmPassword"
                 />
-                <argon-checkbox checked>
-                  <label class="form-check-label" for="flexCheckDefault">
-                    I agree the
-                    <a href="javascript:;" class="text-dark font-weight-bolder"
-                      >Terms and Conditions</a
-                    >
-                  </label>
-                </argon-checkbox>
                 <div class="text-center">
-                  <argon-button @click="submitForm"
+                  <argon-button
+                  type="submit"              
                     fullWidth
                     color="dark"
                     variant="gradient"
