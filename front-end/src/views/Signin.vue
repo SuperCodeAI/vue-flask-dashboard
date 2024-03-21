@@ -1,11 +1,27 @@
 <script setup>
 import { onBeforeUnmount, onBeforeMount } from "vue";
 import { useStore } from "vuex";
+import { ref } from 'vue';
 import Navbar from "@/examples/PageLayout/Navbar.vue";
 import ArgonInput from "@/components/ArgonInput.vue";
-import ArgonSwitch from "@/components/ArgonSwitch.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
+import { useRouter } from 'vue-router';
+
 const body = document.getElementsByTagName("body")[0];
+const router = useRouter();
+const email = ref('');
+const password = ref('');
+
+const signin = async () => {
+  try {
+    await store.dispatch('signin', { email: email.value, password: password.value });
+    // After successful login, redirect to the dashboard page
+    router.push('/dashboard-default');
+  } catch (error) {
+    console.error('Login failed:', error);
+    // Handle login failure (e.g., show an error message to the user)
+  }
+};
 
 const store = useStore();
 onBeforeMount(() => {
@@ -45,14 +61,14 @@ onBeforeUnmount(() => {
             >
               <div class="card card-plain">
                 <div class="pb-0 card-header text-start">
-                  <h4 class="font-weight-bolder">Sign In</h4>
-                  <p class="mb-0">Enter your email and password to sign in</p>
+                  <h4 class="font-weight-bolder">로그인</h4>
+                  <p class="mb-0">이메일과 비밀번호를 입력하세요</p>
                 </div>
                 <div class="card-body">
-                  <form role="form">
+                  <form @submit.prevent="signin">
                     <div class="mb-3">
                       <argon-input
-                        id="email"
+                        v-model="email"
                         type="email"
                         placeholder="Email"
                         name="email"
@@ -61,36 +77,33 @@ onBeforeUnmount(() => {
                     </div>
                     <div class="mb-3">
                       <argon-input
-                        id="password"
+                        v-model="password"
                         type="password"
                         placeholder="Password"
                         name="password"
                         size="lg"
                       />
-                    </div>
-                    <argon-switch id="rememberMe" name="remember-me"
-                      >Remember me</argon-switch
-                    >
-
+                    </div>                    
                     <div class="text-center">
                       <argon-button
+                        type="submit"
                         class="mt-4"
                         variant="gradient"
                         color="success"
                         fullWidth
                         size="lg"
-                        >Sign in</argon-button
+                        >로그인</argon-button
                       >
                     </div>
                   </form>
                 </div>
                 <div class="px-1 pt-0 text-center card-footer px-lg-2">
                   <p class="mx-auto mb-4 text-sm">
-                    Don't have an account?
+                    계정이 없으신가요?
                     <a
                       href="javascript:;"
                       class="text-success text-gradient font-weight-bold"
-                      >Sign up</a
+                      >회원 가입</a
                     >
                   </p>
                 </div>
@@ -110,11 +123,10 @@ onBeforeUnmount(() => {
                 <h4
                   class="mt-5 text-white font-weight-bolder position-relative"
                 >
-                  "Attention is the new currency"
+                  "태어나려는 자는 하나의 세계를 깨뜨려야 한다"
                 </h4>
                 <p class="text-white position-relative">
-                  The more effortless the writing looks, the more effort the
-                  writer actually put into the process.
+                  -헤르만 헤세 데미안 중에서-
                 </p>
               </div>
             </div>

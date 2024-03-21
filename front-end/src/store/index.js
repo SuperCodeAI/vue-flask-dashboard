@@ -1,4 +1,5 @@
 import { createStore } from "vuex";
+import axios from 'axios';
 
 export default createStore({
   state: {
@@ -17,6 +18,7 @@ export default createStore({
     showFooter: true,
     showMain: true,
     layout: "default",
+    authToken: localStorage.getItem('authToken') || null,
   },
   mutations: {
     toggleConfigurator(state) {
@@ -44,11 +46,34 @@ export default createStore({
         state.isNavFixed = false;
       }
     },
+    setAuthToken(state, token) {
+      state.authToken = token;
+      localStorage.setItem('authToken', token);
+    },
+    clearAuthToken(state) {
+      state.authToken = null;
+      localStorage.removeItem('authToken');
+    },
   },
   actions: {
     toggleSidebarColor({ commit }, payload) {
       commit("sidebarType", payload);
     },
+    signin({ commit }, credentials) {
+      axios.post('http://localhost:5000/api/signin', credentials)
+      .then(response => {
+        commit('setAuthToken', response.data.access_token);
+        // Here you can also redirect the user or perform other actions upon successful login
+      })
+      .catch(error => {
+        console.error('Signin Error:', error);
+        // Handle login error (e.g., show error message)
+      });      
+    },
+    logout({ commit }) {
+      commit('clearAuthToken');
+    
   },
+},
   getters: {},
 });

@@ -1,4 +1,21 @@
 <script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+
+const store = useStore();
+const router = useRouter();
+
+// 로그인 상태 확인
+const isLoggedIn = computed(() => !!store.state.authToken);
+
+// 로그아웃 함수
+const logout = () => {
+  store.dispatch('logout').then(() => {
+    router.push('/signin');
+  });
+};
+
 defineProps({
   btnBackground: {
     type: String,
@@ -24,9 +41,9 @@ defineProps({
     <div class="container ps-2 pe-0">
       <router-link
         class="navbar-brand font-weight-bolder ms-lg-0 ms-3"
-        :class="darkMode ? 'text-black' : 'text-white'"
+        :class="[darkMode ? 'text-black' : 'text-white', 'fs-3']"
         to="/"
-        >Argon Dashboard 2</router-link
+        >CCRC Dashboard</router-link
       >
       <button
         class="shadow-none navbar-toggler ms-2"
@@ -58,18 +75,8 @@ defineProps({
               ></i>
               Dashboard
             </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link me-2" to="/profile">
-              <i
-                class="fa fa-user opacity-6 me-1"
-                aria-hidden="true"
-                :class="isBlur ? 'text-dark' : 'text-white'"
-              ></i>
-              Profile
-            </router-link>
-          </li>
-          <li class="nav-item">
+          </li>          
+          <li class="nav-item" v-if="!isLoggedIn">
             <router-link class="nav-link me-2" to="/signup">
               <i
                 class="fas fa-user-circle opacity-6 me-1"
@@ -79,7 +86,7 @@ defineProps({
               Sign Up
             </router-link>
           </li>
-          <li class="nav-item">
+          <li class="nav-item" v-if="!isLoggedIn">
             <router-link class="nav-link me-2" to="/signin">
               <i
                 class="fas fa-key opacity-6 me-1"
@@ -89,17 +96,11 @@ defineProps({
               Sign In
             </router-link>
           </li>
-        </ul>
-        <ul class="navbar-nav d-lg-block d-none">
-          <li class="nav-item">
-            <a
-              href="https://www.creative-tim.com/product/vue-argon-dashboard"
-              class="btn btn-sm mb-0 me-1"
-              :class="isBtn"
-              >Free download</a
-            >
+          <li class="nav-item" v-if="isLoggedIn">
+            <a href="#" class="nav-link" @click="logout">Logout</a>
+            
           </li>
-        </ul>
+        </ul>        
       </div>
     </div>
   </nav>

@@ -2,10 +2,15 @@ from flask import Flask
 from flask_cors import CORS
 from config import Config
 from .extensions import db
+from flask_jwt_extended import JWTManager
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    
+    app.config['JWT_SECRET_KEY'] = '123456'  # Change this!
+    jwt = JWTManager(app)
+    
     db.init_app(app)
     CORS(app)
     
