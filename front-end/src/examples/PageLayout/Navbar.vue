@@ -1,26 +1,9 @@
 <script setup>
-import { computed } from 'vue';
-import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
-
-const store = useStore();
-const router = useRouter();
-
-// 로그인 상태 확인
-const isLoggedIn = computed(() => !!store.state.authToken);
-
-// 로그아웃 함수
-const logout = () => {
-  store.dispatch('logout').then(() => {
-    router.push('/signin');
-  });
-};
-
 defineProps({
   btnBackground: {
     type: String,
     default: "",
-  },
+  },  
   isBlur: {
     type: String,
     default: "",
@@ -73,10 +56,10 @@ defineProps({
                 aria-hidden="true"
                 :class="isBlur ? 'text-dark' : 'text-white'"
               ></i>
-              Dashboard
+             개발 중 - 페이지 이동용
             </router-link>
           </li>          
-          <li class="nav-item" v-if="!isLoggedIn">
+          <li class="nav-item">
             <router-link class="nav-link me-2" to="/signup">
               <i
                 class="fas fa-user-circle opacity-6 me-1"
@@ -86,7 +69,7 @@ defineProps({
               Sign Up
             </router-link>
           </li>
-          <li class="nav-item" v-if="!isLoggedIn">
+          <li class="nav-item">
             <router-link class="nav-link me-2" to="/signin">
               <i
                 class="fas fa-key opacity-6 me-1"
@@ -95,11 +78,7 @@ defineProps({
               ></i>
               Sign In
             </router-link>
-          </li>
-          <li class="nav-item" v-if="isLoggedIn">
-            <a href="#" class="nav-link" @click="logout">Logout</a>
-            
-          </li>
+          </li>          
         </ul>        
       </div>
     </div>
