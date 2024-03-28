@@ -45,6 +45,6 @@ const getRoute = () => {
           </template>
         </sidenav-item>
       </li>
-          </ul>
+    </ul>
   </div>
 </template>

@@ -5,6 +5,8 @@ import SidenavList from "./SidenavList.vue";
 import logo from "@/assets/img/logo-ct-dark.png";
 import logoWhite from "@/assets/img/logo-ct.png";
 
+// 위에 로고 경로 수정 하면 메인 화면 로고 변경됨.
+
 const store = useStore();
 const isRTL = computed(() => store.state.isRTL);
 const layout = computed(() => store.state.layout);
@@ -33,7 +35,7 @@ const darkMode = computed(() => store.state.darkMode);
         id="iconSidenav"
       ></i>
 
-      <router-link class="m-0 navbar-brand" to="/">
+      <router-link class="m-0 navbar-brand" to="/dashboard-default">
         <img
           :src="darkMode || sidebarType === 'bg-default' ? logoWhite : logo"
           class="navbar-brand-img h-100"

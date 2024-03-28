@@ -3,7 +3,7 @@ defineProps({
   btnBackground: {
     type: String,
     default: "",
-  },  
+  },
   isBlur: {
     type: String,
     default: "",
@@ -56,9 +56,9 @@ defineProps({
                 aria-hidden="true"
                 :class="isBlur ? 'text-dark' : 'text-white'"
               ></i>
-             개발 중 - 페이지 이동용
+              개발 중 - 페이지 이동용
             </router-link>
-          </li>          
+          </li>
           <li class="nav-item">
             <router-link class="nav-link me-2" to="/signup">
               <i
@@ -78,8 +78,8 @@ defineProps({
               ></i>
               Sign In
             </router-link>
-          </li>          
-        </ul>        
+          </li>
+        </ul>
       </div>
     </div>
   </nav>

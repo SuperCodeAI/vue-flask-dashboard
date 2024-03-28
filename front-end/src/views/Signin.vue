@@ -1,26 +1,38 @@
 <script setup>
 import { onBeforeUnmount, onBeforeMount } from "vue";
 import { useStore } from "vuex";
-import { ref } from 'vue';
+import { ref } from "vue";
 import Navbar from "@/examples/PageLayout/Navbar.vue";
 import ArgonInput from "@/components/ArgonInput.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
 
 const body = document.getElementsByTagName("body")[0];
 const router = useRouter();
-const email = ref('');
-const password = ref('');
+const email = ref("");
+const password = ref("");
 
 const signin = async () => {
+  if (email.value.trim() === "" || password.value.trim() === "") {
+    alert("이메일과 비밀번호를 모두 입력해주세요.");
+    return;
+  }
+
   try {
-    await store.dispatch('signin', { email: email.value, password: password.value });
+    await store.dispatch("signin", {
+      email: email.value,
+      password: password.value,
+    });
     // After successful login, redirect to the dashboard page
-    router.push('/dashboard-default');
+    router.push("/dashboard-default");
   } catch (error) {
-    console.error('Login failed:', error);
+    console.error("Login failed:", error);
     // Handle login failure (e.g., show an error message to the user)
   }
+};
+
+const goToSignup = () => {
+  router.push("/signup");
 };
 
 const store = useStore();
@@ -83,7 +95,7 @@ onBeforeUnmount(() => {
                         name="password"
                         size="lg"
                       />
-                    </div>                    
+                    </div>
                     <div class="text-center">
                       <argon-button
                         type="submit"
@@ -101,8 +113,9 @@ onBeforeUnmount(() => {
                   <p class="mx-auto mb-4 text-sm">
                     계정이 없으신가요?
                     <a
-                      href="javascript:;"
                       class="text-success text-gradient font-weight-bold"
+                      @click="goToSignup"
+                      style="cursor: pointer"
                       >회원 가입</a
                     >
                   </p>
