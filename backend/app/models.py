@@ -39,6 +39,7 @@ class Project(db.Model):
     model_id = db.Column(db.Integer, db.ForeignKey('model.model_id'), nullable=False)
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.dataset_id'), nullable=False)
     status = db.Column(db.String(128), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     result = db.Column(db.Text, nullable=True)
 
 class ProjectNode(db.Model):

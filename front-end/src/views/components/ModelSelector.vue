@@ -1,31 +1,37 @@
 <template>
-    <div class="model-selector-container">
-      <!-- Header title for the model selection -->
+  <div class="model-selector-container">
+    <!-- Header title for the model selection -->
     <h2 class="model-header">Model Selection</h2>
-      <!-- Model list and description container -->
+    <!-- Model list and description container -->
     <div class="model-content">
       <div class="model-list">
         <ul>
-            <li
-              v-for="model in models"
-              :key="model.id"
-              @click="selectModel(model)"
-              :class="{ selected: model.selected }"
-            >
-              {{ model.name }}
-            </li>
-          </ul>
-        </div>
-        <div class="model-description">
-          <h3>{{ selectedModel.name }}</h3>
-          <p>{{ selectedModel.description }}</p>
-        </div>
+          <li
+            v-for="model in models"
+            :key="model.id"
+            @click="updateSelectedModel(model)"
+            :class="{ selected: model === selectedModel }"
+          >
+            {{ model.name }}
+          </li>
+        </ul>
+      </div>
+      <div class="model-description">
+        <h3>{{ selectedModel?.name }}</h3>
+        <p>{{ selectedModel?.description }}</p>
       </div>
     </div>
-  </template>
-  
+  </div>
+</template>
+
 <script setup>
-import { ref } from "vue";
+import { ref, defineProps, watch, defineEmits } from "vue";
+
+const props = defineProps({
+  modelValue: Object,
+});
+
+const emit = defineEmits(["update:modelValue"]);
 
 const models = ref([
   { id: 1, name: "Model A", description: "This is a description of Model A." },
@@ -33,12 +39,21 @@ const models = ref([
   { id: 3, name: "Model C", description: "This is a description of Model C." },
   // Continue adding models here
 ]);
-const selectedModel = ref(models.value[0]); // Define selectedModel with ref
 
-const selectModel = (model) => {
-  models.value.forEach((m) => m.selected = false);
-  model.selected = true;
+const selectedModel = ref(props.modelValue || models.value[0]);
+
+// Watches for changes to props.modelValue
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    selectedModel.value = newValue;
+  },
+);
+
+const updateSelectedModel = (model) => {
   selectedModel.value = model;
+  // Emit event for v-model to work
+  emit("update:modelValue", model);
 };
 </script>
 

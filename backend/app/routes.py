@@ -43,21 +43,30 @@ def signin():
         # 실패한 경우
         return jsonify({'message': 'Invalid credentials.'}), 401
 
-    
-@main.route('/api/submit-training', methods=['POST'])
-def submit_training():
+@main.route('/api/create-project', methods=['POST'])
+def create_project():
+    # 전송된 데이터를 받음
     data = request.json
-    # 다른 백엔드 URL
-    other_backend_url = "http://otherbackend.example.com/api/receive-training"
+    print("Received project data:", data)
+    
+    # 데이터 처리 로직 (예시)
+    # 여기에서는 단순히 받은 데이터를 그대로 반환하고 있습니다.
+    return jsonify(data), 200
+    
+# @main.route('/api/create-project', methods=['POST'])
+# def submit_training():
+#     data = request.json
+#     # 다른 백엔드 URL
+#     other_backend_url = "http://otherbackend.example.com/api/receive-training"
 
-    # `requests`를 사용하여 다른 백엔드로 데이터 전송
-    response = requests.post(other_backend_url, json=data)
+#     # `requests`를 사용하여 다른 백엔드로 데이터 전송
+#     response = requests.post(other_backend_url, json=data)
 
-    if response.status_code == 200:
-        # 성공적으로 데이터를 전송했을 때의 처리
-        return jsonify({"message": "Data successfully submitted to other backend."}), 200
-    else:
-        # 실패했을 때의 처리
-        return jsonify({"message": "Failed to submit data to other backend."}), response.status_code
+#     if response.status_code == 200:
+#         # 성공적으로 데이터를 전송했을 때의 처리
+#         return jsonify({"message": "Data successfully submitted to other backend."}), 200
+#     else:
+#         # 실패했을 때의 처리
+#         return jsonify({"message": "Failed to submit data to other backend."}), response.status_code
     
     
