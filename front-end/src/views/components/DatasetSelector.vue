@@ -6,9 +6,11 @@
         <ul>
           <li
             v-for="dataset in datasets"
-            :key="dataset.id"
+            :key="dataset.dataset_id"
             @click="selectDataset(dataset)"
-            :class="{ selected: dataset.id === selectedDataset.id }"
+            :class="{
+              selected: dataset.dataset_id === selectedDataset.dataset_id,
+            }"
           >
             {{ dataset.name }}
           </li>
@@ -23,52 +25,22 @@
 </template>
 
 <script setup>
-import { ref, defineProps, watch, defineEmits } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useStore } from "vuex";
 
-const emit = defineEmits(["update:modelValue"]);
+const store = useStore();
+const datasets = computed(() => store.state.datasets);
+const selectedDataset = ref({});
 
-// Accepts the current value via v-model in the parent component
-const props = defineProps({
-  modelValue: Object,
+onMounted(() => {
+  store.dispatch("fetchDatasets");
 });
 
-const datasets = ref([
-  {
-    id: 1,
-    name: "Dataset A",
-    description: "Description of Dataset A",
-    selected: false,
-  },
-  {
-    id: 2,
-    name: "Dataset B",
-    description: "Description of Dataset B",
-    selected: false,
-  },
-  {
-    id: 3,
-    name: "Dataset C",
-    description: "Description of Dataset C",
-    selected: false,
-  },
-  // Continue adding datasets here
-]);
-
-const selectedDataset = ref(props.modelValue || datasets.value[0]);
-
-// Update selectedDataset and emit an event to update the modelValue in the parent
 const selectDataset = (dataset) => {
   selectedDataset.value = dataset;
-  emit("update:modelValue", dataset);
+  // Here you would emit an event or sync with the parent component
+  // emit('update:modelValue', dataset);
 };
-
-// Watch for external changes to modelValue and update selectedDataset accordingly
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    selectedDataset.value = newVal;
-  },
-);
 </script>
 
 <style scoped>

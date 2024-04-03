@@ -15,15 +15,13 @@ class Model(db.Model):
     model_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
-    task = db.Column(db.String(128), nullable=False)
-    type = db.Column(db.String(128), nullable=False)
-    dataset_used_for_learning = db.Column(db.String(128), nullable=True)
+    
 
 class Dataset(db.Model):
     dataset_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
-    size = db.Column(db.Integer, nullable=False)
+
 
 class Node(db.Model):
     node_id = db.Column(db.Integer, primary_key=True)
@@ -34,7 +32,7 @@ class Node(db.Model):
     status = db.Column(db.String(128), nullable=False)
 
 class Project(db.Model):
-    project_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     model_id = db.Column(db.Integer, db.ForeignKey('model.model_id'), nullable=False)
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.dataset_id'), nullable=False)
@@ -44,6 +42,6 @@ class Project(db.Model):
 
 class ProjectNode(db.Model):
     project_node_id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.project_id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     node_id = db.Column(db.Integer, db.ForeignKey('node.node_id'), nullable=False)
     status = db.Column(db.String(128), nullable=True)

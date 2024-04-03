@@ -9,7 +9,7 @@ from flask_migrate import Migrate  # Import Migrate
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    
+    app.config['DEBUG'] = True
     app.config['JWT_SECRET_KEY'] = '123456'  # Change this!
     jwt = JWTManager(app)
     

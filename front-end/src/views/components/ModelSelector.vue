@@ -8,9 +8,9 @@
         <ul>
           <li
             v-for="model in models"
-            :key="model.id"
+            :key="model.model_id"
             @click="updateSelectedModel(model)"
-            :class="{ selected: model === selectedModel }"
+            :class="{ selected: model.model_id === selectedModel.model_id }"
           >
             {{ model.name }}
           </li>
@@ -25,36 +25,23 @@
 </template>
 
 <script setup>
-import { ref, defineProps, watch, defineEmits } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useStore } from "vuex";
 
-const props = defineProps({
-  modelValue: Object,
+const store = useStore();
+const models = computed(() => store.state.models);
+const selectedModel = ref({});
+
+onMounted(() => {
+  // Fetch models when the component is mounted
+  store.dispatch("fetchModels");
 });
 
-const emit = defineEmits(["update:modelValue"]);
-
-const models = ref([
-  { id: 1, name: "Model A", description: "This is a description of Model A." },
-  { id: 2, name: "Model B", description: "This is a description of Model B." },
-  { id: 3, name: "Model C", description: "This is a description of Model C." },
-  // Continue adding models here
-]);
-
-const selectedModel = ref(props.modelValue || models.value[0]);
-
-// Watches for changes to props.modelValue
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    selectedModel.value = newValue;
-  },
-);
-
-const updateSelectedModel = (model) => {
+function updateSelectedModel(model) {
   selectedModel.value = model;
-  // Emit event for v-model to work
-  emit("update:modelValue", model);
-};
+  // Here you would emit an event or sync with the parent component
+  // emit('update:modelValue', model);
+}
 </script>
 
 <style scoped>

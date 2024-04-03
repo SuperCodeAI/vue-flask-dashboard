@@ -20,6 +20,8 @@ export default createStore({
     layout: "default",
     authToken: sessionStorage.getItem("authToken") || null,
     userEmail: sessionStorage.getItem("userEmail") || null, // 변경: 초기 상태 설정
+    models: [],
+    datasets: [],
   },
   mutations: {
     toggleConfigurator(state) {
@@ -61,6 +63,13 @@ export default createStore({
       sessionStorage.removeItem("authToken");
       sessionStorage.removeItem("userEmail"); // 변경: 이메일 세션 스토리지에서 삭제
     },
+    // 백엔드에서 모델, 데이터셋 자료 받아옴
+    setModels(state, models) {
+      state.models = models;
+    },
+    setDatasets(state, datasets) {
+      state.datasets = datasets;
+    },
   },
   actions: {
     toggleSidebarColor({ commit }, payload) {
@@ -83,6 +92,26 @@ export default createStore({
     },
     logout({ commit }) {
       commit("clearAuthToken");
+    },
+    async fetchModels({ commit }) {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/data/models",
+        );
+        commit("setModels", response.data);
+      } catch (error) {
+        console.error("Error fetching models:", error);
+      }
+    },
+    async fetchDatasets({ commit }) {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/data/datasets",
+        );
+        commit("setDatasets", response.data);
+      } catch (error) {
+        console.error("Error fetching datasets:", error);
+      }
     },
   },
   getters: {},

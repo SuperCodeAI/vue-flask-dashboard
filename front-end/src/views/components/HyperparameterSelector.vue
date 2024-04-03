@@ -8,8 +8,7 @@
           type="text"
           id="learningRate"
           v-model="localHyperparameters.learningRate"
-          @input="emitUpdate"
-          placeholder="Enter learning rate"
+          @input="handleLearningRateInput($event.target.value)"
         />
       </div>
       <div class="form-group">
@@ -67,9 +66,9 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => ({
-      learningRate: 0.0001,
-      batchSize: 32,
-      epochs: 10,
+      learningRate: "0.001",
+      batchSize: "32",
+      epochs: "10",
       optimizer: "adam",
       lossFunction: "categorical_crossentropy",
     }),
@@ -79,16 +78,33 @@ const emit = defineEmits(["update:modelValue"]);
 
 const localHyperparameters = ref({ ...props.modelValue });
 
+const handleLearningRateInput = (value) => {
+  if (value === "" || /^0\.\d*$|^\.\d+$|^0$/.test(value)) {
+    localHyperparameters.value.learningRate = value;
+  }
+  emitUpdate();
+};
+
 watch(
   () => props.modelValue,
   (newValue) => {
-    localHyperparameters.value = { ...newValue };
+    if (newValue) {
+      localHyperparameters.value = { ...newValue };
+    }
   },
   { deep: true },
 );
 
 const emitUpdate = () => {
-  emit("update:modelValue", { ...localHyperparameters.value });
+  // 문자열로 변환해야 하는 필드에 대한 변환 처리
+  const updatedHyperparameters = {
+    ...localHyperparameters.value,
+    learningRate: String(localHyperparameters.value.learningRate),
+    batchSize: String(localHyperparameters.value.batchSize),
+    epochs: String(localHyperparameters.value.epochs),
+  };
+
+  emit("update:modelValue", updatedHyperparameters);
 };
 </script>
 
