@@ -1,26 +1,50 @@
 <script setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, computed, watch } from "vue";
+import { useStore } from "vuex";
 import ModelselectBox from "./components/ModelSelector.vue";
 import DatasetselectBox from "./components/DatasetSelector.vue";
 import HyperparameterselectBox from "./components/HyperparameterSelector.vue";
 import NodeselectBox from "./components/NodeSelector.vue";
 import axios from "axios";
 
+const store = useStore();
+
+const authToken = computed(() => store.state.authToken);
+
 const projectData = reactive({
-  model: {}, // Initially an object, later to be just a string of model name
-  dataset: {}, // Initially an object, later to be just a string of dataset name
+  model: {}, // Initially an object, later to be just a string of model_id
+  dataset: {}, // Initially an object, later to be just a string of dataset_id
   hyperparameters: {}, // Already in the desired format
   nodes: [], // Initially an array of objects, later to be an array of node names
 });
 
 const isCreatingProject = ref(false);
 
+watch(
+  projectData.hyperparameters,
+  (newVal) => {
+    console.log("Hyperparameters updated:", newVal);
+  },
+  { deep: true },
+);
+
 const prepareDataForSubmission = () => {
   return {
-    model: projectData.model.name, // Just send the model name
-    dataset: projectData.dataset.name, // Just send the dataset name
-    hyperparameters: projectData.hyperparameters, // Already in the correct format
-    nodes: projectData.nodes.map((node) => node.name), // Convert nodes array to an array of names
+    model: projectData.model.model_id,
+    dataset: projectData.dataset.dataset_id,
+    hyperparameters: {
+      ...projectData.hyperparameters,
+      optimizer: projectData.hyperparameters.optimizer,
+      lossFunction: projectData.hyperparameters.lossFunction,
+    },
+    nodes: projectData.nodes.map((node) => node.name),
+  };
+};
+
+const hyperparametersSelected = (newHyperparameters) => {
+  projectData.hyperparameters = {
+    ...projectData.hyperparameters,
+    ...newHyperparameters,
   };
 };
 
@@ -29,10 +53,19 @@ const createProject = async () => {
   try {
     isCreatingProject.value = true;
     const formattedData = prepareDataForSubmission(); // 전달 데이터 형식 변경
+    lastSubmittedData.value = formattedData;
+    const config = {
+      headers: {
+        Authorization: `Bearer ${authToken.value}`,
+      },
+    };
+
     const response = await axios.post(
       "http://localhost:5000/api/create-project",
       formattedData,
+      config,
     );
+
     console.log(response.data);
     // Handle successful project creation (e.g., redirect or show message)
   } catch (error) {
@@ -42,13 +75,37 @@ const createProject = async () => {
     isCreatingProject.value = false;
   }
 };
+
+const modelIdSelected = (modelId) => {
+  if (modelId) {
+    const fullModel = store.state.models.find(
+      (model) => model.model_id === modelId,
+    );
+    if (fullModel) {
+      projectData.model = fullModel; // Assign the full model object
+    } else {
+      console.error("Model not found!");
+    }
+  }
+};
+
+const datasetSelected = (datasetId) => {
+  projectData.dataset = { dataset_id: datasetId };
+};
+
+const stringifyData = (value) => {
+  return JSON.stringify(value, null, 2); // Pretty print JSON
+};
+
+const lastSubmittedData = ref(null); // 백엔드로 마지막으로 전송된 데이터를 저장
 </script>
+
 <template>
   <div class="container-fluid">
     <div class="py-5 container-fluid">
       <div class="row">
         <div class="col-12">
-          <ModelselectBox v-model="projectData.model" />
+          <ModelselectBox @update:modelValue="modelIdSelected" />
         </div>
       </div>
     </div>
@@ -56,7 +113,7 @@ const createProject = async () => {
     <div class="py-2 container-fluid">
       <div class="row">
         <div class="col-12">
-          <DatasetselectBox v-model="projectData.dataset" />
+          <DatasetselectBox @update:modelValue="datasetSelected" />
         </div>
       </div>
     </div>
@@ -64,7 +121,9 @@ const createProject = async () => {
     <div class="py-2 container-fluid">
       <div class="row">
         <div class="col-12">
-          <HyperparameterselectBox v-model="projectData.hyperparameters" />
+          <HyperparameterselectBox
+            @update:modelValue="hyperparametersSelected"
+          />
         </div>
       </div>
     </div>
@@ -85,6 +144,10 @@ const createProject = async () => {
       >
         {{ isCreatingProject ? "Creating..." : "Create Project" }}
       </button>
+    </div>
+    <div class="last-submitted-data-container">
+      <h3>Last Submitted Data</h3>
+      <pre>{{ stringifyData(lastSubmittedData) }}</pre>
     </div>
   </div>
 </template>
@@ -109,6 +172,13 @@ const createProject = async () => {
   margin-top: 20px; /* Adds space above the button */
   margin-bottom: 40px; /* Adds space below the button */
   /* Other styling remains unchanged */
+}
+
+.last-submitted-data-container {
+  margin-top: 20px;
+  background-color: #fbfafa;
+  padding: 15px;
+  border-radius: 5px;
 }
 
 /* ... */

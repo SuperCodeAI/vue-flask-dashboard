@@ -25,11 +25,11 @@ class Dataset(db.Model):
 
 class Node(db.Model):
     node_id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False, unique=True)
-    description = db.Column(db.Text, nullable=True)
-    cpu_cores = db.Column(db.Integer, nullable=False)
-    gpu_cores = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(128), nullable=False)
+    name = db.Column(db.String(128), nullable=False)
+    cpu_count = db.Column(db.Integer, nullable=False)
+    total_memory = db.Column(db.Integer, nullable=False)  
+    total_disk = db.Column(db.Integer, nullable=False)  
+    status = db.Column(db.Integer, nullable=False)  # 대기 : 0 , 학습 중 : 1, 학습 완료: 2
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -1,0 +1,57 @@
+2024-04-09 10:05:30,177 ERROR: Exception on /api/data/projects [POST] [in D:\develop\vue-flask-dashboard\backend\dashboard\Lib\site-packages\flask\app.py:828]
+Traceback (most recent call last):
+  File "D:\develop\vue-flask-dashboard\backend\dashboard\Lib\site-packages\flask\app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\develop\vue-flask-dashboard\backend\dashboard\Lib\site-packages\flask\app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\develop\vue-flask-dashboard\backend\dashboard\Lib\site-packages\flask_cors\extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "D:\develop\vue-flask-dashboard\backend\dashboard\Lib\site-packages\flask\app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\develop\vue-flask-dashboard\backend\dashboard\Lib\site-packages\flask\app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\develop\vue-flask-dashboard\backend\dashboard\Lib\site-packages\flask_jwt_extended\view_decorators.py", line 170, in decorator
+    return current_app.ensure_sync(fn)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\develop\vue-flask-dashboard\backend\app\routes.py", line 176, in fetch_projects
+    "name": project.name,
+            ^^^^^^^^^^^^
+AttributeError: 'Project' object has no attribute 'name'
+2024-04-09 10:14:16,318 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 10:16:37,595 INFO: 유저 ID: <User 12345@1234.com> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:58]
+2024-04-09 10:16:37,596 INFO: Model: <Model 1>, Dataset: <Dataset 1> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:69]
+2024-04-09 10:16:37,619 INFO: 프로젝트 생성 성공: Project ID 2 [in D:\develop\vue-flask-dashboard\backend\app\routes.py:85]
+2024-04-09 10:16:37,621 INFO: 수정된 파일: {'id': 2, 'model': 1, 'dataset': 1, 'hyperparameters': {'learningRate': 0.12, 'batchSize': 123, 'epochs': 123, 'optimizer': 1, 'lossFunction': 1}, 'nodes': ['Node 9']} [in D:\develop\vue-flask-dashboard\backend\app\routes.py:94]
+2024-04-09 10:17:49,015 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 10:18:34,238 INFO: 유저 ID: <User 12345@1234.com> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:58]
+2024-04-09 10:18:34,239 INFO: Model: <Model 2>, Dataset: <Dataset 3> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:69]
+2024-04-09 10:18:34,261 INFO: 프로젝트 생성 성공: Project ID 3 [in D:\develop\vue-flask-dashboard\backend\app\routes.py:85]
+2024-04-09 10:18:34,262 INFO: 수정된 파일: {'id': 3, 'model': 2, 'dataset': 3, 'hyperparameters': {'learningRate': 0.001, 'batchSize': 32, 'epochs': 50, 'optimizer': 1, 'lossFunction': 1}, 'nodes': ['Node 5']} [in D:\develop\vue-flask-dashboard\backend\app\routes.py:94]
+2024-04-09 10:39:44,375 INFO: 유저 ID: <User kim123@gmail.com> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:58]
+2024-04-09 10:39:44,376 INFO: Model: <Model 2>, Dataset: <Dataset 3> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:69]
+2024-04-09 10:39:44,396 INFO: 프로젝트 생성 성공: Project ID 4 [in D:\develop\vue-flask-dashboard\backend\app\routes.py:85]
+2024-04-09 10:39:44,397 INFO: 수정된 파일: {'id': 4, 'model': 2, 'dataset': 3, 'hyperparameters': {'learningRate': 0.005, 'batchSize': 64, 'epochs': 32, 'optimizer': 1, 'lossFunction': 1}, 'nodes': ['Node 1']} [in D:\develop\vue-flask-dashboard\backend\app\routes.py:94]
+2024-04-09 10:40:40,622 INFO: 유저 ID: <User kim123@gmail.com> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:58]
+2024-04-09 10:40:40,624 INFO: Model: <Model 1>, Dataset: <Dataset 1> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:69]
+2024-04-09 10:40:40,643 INFO: 프로젝트 생성 성공: Project ID 5 [in D:\develop\vue-flask-dashboard\backend\app\routes.py:85]
+2024-04-09 10:40:40,644 INFO: 수정된 파일: {'id': 5, 'model': 1, 'dataset': 1, 'hyperparameters': {'learningRate': 0.005, 'batchSize': 64, 'epochs': 32, 'optimizer': 1, 'lossFunction': 1}, 'nodes': ['Node 2']} [in D:\develop\vue-flask-dashboard\backend\app\routes.py:94]
+2024-04-09 11:06:59,878 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 11:07:00,694 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 17:42:57,810 INFO: 유저 ID: <User 777@777.com> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:58]
+2024-04-09 17:42:57,814 INFO: Model: <Model 2>, Dataset: <Dataset 3> [in D:\develop\vue-flask-dashboard\backend\app\routes.py:69]
+2024-04-09 17:42:57,834 INFO: 프로젝트 생성 성공: Project ID 6 [in D:\develop\vue-flask-dashboard\backend\app\routes.py:85]
+2024-04-09 17:42:57,836 INFO: 수정된 파일: {'id': 6, 'model': 2, 'dataset': 3, 'hyperparameters': {'learningRate': 0.55, 'batchSize': 77, 'epochs': 777, 'optimizer': 1, 'lossFunction': 1}, 'nodes': ['Node 9']} [in D:\develop\vue-flask-dashboard\backend\app\routes.py:94]
+2024-04-09 21:38:23,474 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 21:39:15,800 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 21:52:13,801 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 21:58:24,576 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 22:00:17,960 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 22:00:27,264 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:35]
+2024-04-09 22:30:36,577 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:37]
+2024-04-09 22:30:37,363 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:37]
+2024-04-09 22:31:18,967 INFO: Application startup [in D:\develop\vue-flask-dashboard\backend\app\__init__.py:37]

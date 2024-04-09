@@ -33,7 +33,7 @@
       <div class="selected-nodes">
         <h3>Selected Nodes</h3>
         <ul>
-          <li v-for="node in modelValue" :key="node.id">
+          <li v-for="node in sortedSelectedNodes" :key="node.id">
             {{ node.name }}
           </li>
         </ul>
@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from "vue";
+import { ref, defineProps, defineEmits, computed } from "vue";
 
 const props = defineProps({
   modelValue: Array,
@@ -125,6 +125,10 @@ const toggleNodeSelection = (node) => {
   }
   selectedNode.value = node;
 };
+
+const sortedSelectedNodes = computed(() => {
+  return [...props.modelValue].sort((a, b) => a.name.localeCompare(b.name));
+});
 </script>
 
 <style scoped>

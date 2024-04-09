@@ -22,6 +22,7 @@ export default createStore({
     userEmail: sessionStorage.getItem("userEmail") || null, // 변경: 초기 상태 설정
     models: [],
     datasets: [],
+    projects: [], // Add a projects array to your state
   },
   mutations: {
     toggleConfigurator(state) {
@@ -70,6 +71,10 @@ export default createStore({
     setDatasets(state, datasets) {
       state.datasets = datasets;
     },
+    // 프로젝트 db에서 사용자 프로젝트 가져옴 
+    setProjects(state, projects) {
+      state.projects = projects;
+    },
   },
   actions: {
     toggleSidebarColor({ commit }, payload) {
@@ -113,6 +118,24 @@ export default createStore({
         console.error("Error fetching datasets:", error);
       }
     },
+    fetchProjects({ commit, state }) {
+      axios
+        .post("http://localhost:5000/api/data/projects", {
+          email: state.userEmail, // send the stored email
+        }, {
+          headers: {
+            Authorization: `Bearer ${state.authToken}`, // send the stored authToken
+          },
+        })
+        .then((response) => {
+          commit("setProjects", response.data); // commit the projects to the state
+        })
+        .catch((error) => {
+          console.error("Error fetching projects:", error);
+        });
+    },
   },
-  getters: {},
+  getters: {
+    userProjects: (state) => state.projects, // Add a getter for the projects
+  },
 });

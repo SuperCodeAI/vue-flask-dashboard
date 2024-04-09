@@ -7,7 +7,7 @@
           <li
             v-for="dataset in datasets"
             :key="dataset.dataset_id"
-            @click="selectDataset(dataset)"
+            @click="updateSelectedDataset(dataset)"
             :class="{
               selected: dataset.dataset_id === selectedDataset.dataset_id,
             }"
@@ -17,30 +17,37 @@
         </ul>
       </div>
       <div class="dataset-description">
-        <h3>{{ selectedDataset.name }}</h3>
-        <p>{{ selectedDataset.description }}</p>
+        <h3>{{ selectedDataset?.name || "No dataset selected" }}</h3>
+        <p>{{ selectedDataset?.description || "" }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, defineEmits } from "vue";
 import { useStore } from "vuex";
+
+const emit = defineEmits(["update:modelValue"]);
 
 const store = useStore();
 const datasets = computed(() => store.state.datasets);
 const selectedDataset = ref({});
 
-onMounted(() => {
-  store.dispatch("fetchDatasets");
+onMounted(async () => {
+  await store.dispatch("fetchDatasets");
+  if (datasets.value.length > 0) {
+    selectedDataset.value = datasets.value[0]; // Set the first dataset as selected
+    emit("update:modelValue", datasets.value[0].dataset_id); // Emit its dataset_id
+  }
 });
 
-const selectDataset = (dataset) => {
-  selectedDataset.value = dataset;
-  // Here you would emit an event or sync with the parent component
-  // emit('update:modelValue', dataset);
-};
+function updateSelectedDataset(dataset) {
+  if (dataset) {
+    selectedDataset.value = dataset;
+    emit("update:modelValue", dataset.dataset_id); // Emit the dataset_id
+  }
+}
 </script>
 
 <style scoped>

@@ -14,7 +14,7 @@
       <div class="form-group">
         <label for="batchSize">Batch Size</label>
         <input
-          type="number"
+          type="text"
           id="batchSize"
           v-model.number="localHyperparameters.batchSize"
           @input="emitUpdate"
@@ -26,7 +26,7 @@
       <div class="form-group">
         <label for="epochs">Epochs</label>
         <input
-          type="number"
+          type="text"
           id="epochs"
           v-model.number="localHyperparameters.epochs"
           @input="emitUpdate"
@@ -37,22 +37,21 @@
 
       <div class="form-group">
         <label for="optimizer">Optimizer</label>
-        <select id="optimizer" v-model="localHyperparameters.optimizer">
-          <option value="adam">Adam</option>
-          <option value="sgd">SGD</option>
-          <option value="rmsprop">RMSprop</option>
+        <select id="optimizer" v-model.number="localHyperparameters.optimizer">
+          <option value="1">Adam</option>
+          <option value="2">SGD</option>
+          <option value="3">RMSprop</option>
         </select>
       </div>
       <div class="form-group">
         <label for="lossFunction">Loss Function</label>
-        <select id="lossFunction" v-model="localHyperparameters.lossFunction">
-          <option value="categorical_crossentropy">
-            Categorical Crossentropy
-          </option>
-          <option value="sparse_categorical_crossentropy">
-            Sparse Categorical Crossentropy
-          </option>
-          <option value="mean_squared_error">Mean Squared Error</option>
+        <select
+          id="lossFunction"
+          v-model.number="localHyperparameters.lossFunction"
+        >
+          <option value="1">Categorical Crossentropy</option>
+          <option value="2">Sparse Categorical Crossentropy</option>
+          <option value="3">Mean Squared Error</option>
         </select>
       </div>
     </div>
@@ -66,23 +65,25 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => ({
-      learningRate: "0.001",
-      batchSize: "32",
-      epochs: "10",
-      optimizer: "adam",
-      lossFunction: "categorical_crossentropy",
+      learningRate: "", // Default as number
+      batchSize: "", // Default as number
+      epochs: "", // Default as number
+      optimizer: "",
+      lossFunction: "",
     }),
   },
 });
+
 const emit = defineEmits(["update:modelValue"]);
 
 const localHyperparameters = ref({ ...props.modelValue });
 
 const handleLearningRateInput = (value) => {
-  if (value === "" || /^0\.\d*$|^\.\d+$|^0$/.test(value)) {
+  // 입력값이 유효한지 검사하는 정규식을 수정합니다.
+  if (value === "" || /^0(\.\d+)?$|^\.\d+$/.test(value)) {
     localHyperparameters.value.learningRate = value;
+    emitUpdate();
   }
-  emitUpdate();
 };
 
 watch(
@@ -96,12 +97,17 @@ watch(
 );
 
 const emitUpdate = () => {
-  // 문자열로 변환해야 하는 필드에 대한 변환 처리
+  // `parseFloat` 또는 `parseInt`를 사용하여 숫자로 변환
   const updatedHyperparameters = {
-    ...localHyperparameters.value,
-    learningRate: String(localHyperparameters.value.learningRate),
-    batchSize: String(localHyperparameters.value.batchSize),
-    epochs: String(localHyperparameters.value.epochs),
+    learningRate: parseFloat(localHyperparameters.value.learningRate),
+    batchSize: parseInt(localHyperparameters.value.batchSize),
+    epochs: parseInt(localHyperparameters.value.epochs),
+    optimizer: localHyperparameters.value.optimizer
+      ? parseInt(localHyperparameters.value.optimizer, 10)
+      : 1, // Providing default value as 1
+    lossFunction: localHyperparameters.value.lossFunction
+      ? parseInt(localHyperparameters.value.lossFunction, 10)
+      : 1, // Providing default value as 1
   };
 
   emit("update:modelValue", updatedHyperparameters);

@@ -17,30 +17,36 @@
         </ul>
       </div>
       <div class="model-description">
-        <h3>{{ selectedModel?.name }}</h3>
-        <p>{{ selectedModel?.description }}</p>
+        <h3>{{ selectedModel?.name || "No model selected" }}</h3>
+        <p>{{ selectedModel?.description || "" }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, defineEmits } from "vue";
 import { useStore } from "vuex";
+
+const emit = defineEmits(["update:modelValue"]);
 
 const store = useStore();
 const models = computed(() => store.state.models);
 const selectedModel = ref({});
 
-onMounted(() => {
-  // Fetch models when the component is mounted
-  store.dispatch("fetchModels");
+onMounted(async () => {
+  await store.dispatch("fetchModels");
+  if (models.value.length > 0) {
+    selectedModel.value = models.value[0]; // Set the first model as selected
+    emit("update:modelValue", models.value[0].model_id); // Emit its model_id
+  }
 });
 
 function updateSelectedModel(model) {
-  selectedModel.value = model;
-  // Here you would emit an event or sync with the parent component
-  // emit('update:modelValue', model);
+  if (model) {
+    selectedModel.value = model;
+    emit("update:modelValue", model.model_id); // Emit the model_id
+  }
 }
 </script>
 
