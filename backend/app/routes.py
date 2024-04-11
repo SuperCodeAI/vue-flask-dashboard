@@ -1,10 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.models import db, User, Model, Dataset, Project
+from app.models import db, User, Model, Dataset, Project, Node
 from flask_jwt_extended import create_access_token , get_jwt_identity, jwt_required
 import requests
 import json
-from .models import Model, Dataset
 from sqlalchemy.exc import SQLAlchemyError
 
 main = Blueprint('main', __name__)
@@ -98,6 +97,14 @@ def submit_training():
 
         if response.status_code == 200:
             new_project.status = "학습 중"
+            new_project.project_nodes = json.dumps(data['nodes'])  # 'nodes'는 노드 이름의 리스트를 JSON 문자열로 저장
+            db.session.commit()
+            node_names = data['nodes']  # Assuming this is a list of node names
+            for node_name in node_names:
+                node = Node.query.filter_by(name=node_name).first()
+                if node:
+                    node.status = 1  # Set status to Learning (1)
+                    db.session.add(node)
             db.session.commit()
             return jsonify({"message": "다른 백엔드로 프로젝트 정보가 성공적으로 전송되었습니다.", "project_id": new_project.id}), 200
         else:
@@ -133,6 +140,22 @@ def get_datasets():
     } for dataset in datasets]
     # JSON 데이터로 응답
     return jsonify(datasets_data)
+
+@main.route('/api/data/nodes', methods=['GET'])
+def get_nodes():
+    nodes = Node.query.all()  # 모든 Node 인스턴스를 데이터베이스에서 조회
+    nodes_data = [{
+        'node_id': node.node_id,
+        'name': node.name,
+        'cpu_core_count': node.cpu_core_count,
+        'total_memory_mb': node.total_memory_mb,  # 단위에 주의하세요
+        'total_disk_mb': node.total_disk_mb,  # 단위에 주의하세요
+        'status': node.status,
+        'ip': node.instance,
+        'gpu_info': node.gpu_info 
+    } for node in nodes]  # 조회된 Node 인스턴스들을 JSON 형식으로 변환
+
+    return jsonify(nodes_data)  # JSON 데이터로 응답
 
 @main.route('/api/reset-db', methods=['POST'])
 def reset_database():
@@ -184,3 +207,34 @@ def fetch_projects():
         })
     print(projects_data)
     return jsonify(projects_data)
+
+@main.route('/api/stop-training', methods=['POST'])
+@jwt_required()
+def stop_training():
+    current_user_email = get_jwt_identity()
+    data = request.json
+    project_id = data.get('projectId')
+
+    # 프로젝트 조회
+    project = Project.query.filter_by(id=project_id).first()
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+
+    # 다른 백엔드로 학습 중단 요청 보내기
+    try:
+        response = requests.delete(f'http://163.180.117.160:8000/status/{project_id}')
+        if response.status_code == 200:
+            # 프로젝트 상태 업데이트
+            project.status = '중단됨'
+            # 프로젝트에 연결된 노드들의 상태를 대기(0)로 변경
+            node_names = project.project_nodes.split(',')  # project_nodes 필드가 노드 이름의 쉼표로 구분된 문자열이라고 가정
+            for node_name in node_names:
+                node = Node.query.filter_by(name=node_name).first()
+                if node:
+                    node.status = 0  # 대기 상태로 설정
+            db.session.commit()
+            return jsonify({"success": True, "message": "Training stopped successfully"}), 200
+        else:
+            return jsonify({"error": "Failed to stop training in external backend"}), response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

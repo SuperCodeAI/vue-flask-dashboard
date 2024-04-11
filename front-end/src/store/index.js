@@ -23,6 +23,7 @@ export default createStore({
     models: [],
     datasets: [],
     projects: [], // Add a projects array to your state
+    nodes: [], // State property for nodes
   },
   mutations: {
     toggleConfigurator(state) {
@@ -71,9 +72,12 @@ export default createStore({
     setDatasets(state, datasets) {
       state.datasets = datasets;
     },
-    // 프로젝트 db에서 사용자 프로젝트 가져옴 
+    // 프로젝트 db에서 사용자 프로젝트 가져옴
     setProjects(state, projects) {
       state.projects = projects;
+    },
+    setNodes(state, nodes) {
+      state.nodes = nodes; // 노드 데이터들 가져옴.
     },
   },
   actions: {
@@ -120,13 +124,17 @@ export default createStore({
     },
     fetchProjects({ commit, state }) {
       axios
-        .post("http://localhost:5000/api/data/projects", {
-          email: state.userEmail, // send the stored email
-        }, {
-          headers: {
-            Authorization: `Bearer ${state.authToken}`, // send the stored authToken
+        .post(
+          "http://localhost:5000/api/data/projects",
+          {
+            email: state.userEmail, // send the stored email
           },
-        })
+          {
+            headers: {
+              Authorization: `Bearer ${state.authToken}`, // send the stored authToken
+            },
+          },
+        )
         .then((response) => {
           commit("setProjects", response.data); // commit the projects to the state
         })
@@ -134,8 +142,19 @@ export default createStore({
           console.error("Error fetching projects:", error);
         });
     },
+    async fetchNodes({ commit }) {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/data/nodes",
+        );
+        commit("setNodes", response.data); // Commit the node data to the state
+      } catch (error) {
+        console.error("Error fetching nodes:", error);
+      }
+    },
   },
   getters: {
     userProjects: (state) => state.projects, // Add a getter for the projects
+    userNodes: (state) => state.nodes,
   },
 });

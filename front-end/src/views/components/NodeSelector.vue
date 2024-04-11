@@ -10,20 +10,23 @@
       <div class="node-list">
         <ul>
           <li
-            v-for="node in nodes"
-            :key="node.id"
-            @click="toggleNodeSelection(node)"
-            :class="{ selected: isSelected(node) }"
-          >
-            {{ node.name }}
-          </li>
+    v-for="node in nodes"
+    :key="node.id"
+    @click="toggleNodeSelection(node)"
+    :class="{ 'selected': isNodeSelected(node) }"
+  >
+    {{ node.name }}
+  </li>
         </ul>
       </div>
 
-      <!-- Description of the selected node in the middle -->
       <div class="node-description" v-if="selectedNode">
-        <h3>{{ selectedNode.name }} Description</h3>
-        <p>{{ selectedNode.description }}</p>
+        <h4>{{ selectedNode.name }} 설명</h4>
+        <!-- Display additional node details -->
+        <p>CPU Core Count: {{ selectedNode.cpu_count }}</p>
+        <p>Total Memory: {{ selectedNode.total_memory }} MB</p>
+        <p>Total Disk: {{ selectedNode.total_disk }} MB</p>
+        <p>Status: {{ nodeStatusDescription }}</p>
       </div>
       <div class="node-description" v-else>
         <p>Select a node to see its description.</p>
@@ -43,90 +46,69 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, computed } from "vue";
+import { ref, defineProps, defineEmits, computed, onMounted } from "vue";
+import { useStore } from "vuex";
+
+const store = useStore();
+const nodes = computed(() => store.getters.userNodes || []);
 
 const props = defineProps({
-  modelValue: Array,
+  modelValue: {
+    type: Array,
+    default: () => [], // Provide a default empty array
+  },
 });
-const emit = defineEmits(["update:modelValue"]);
 
-const nodes = ref([
-  {
-    id: 1,
-    name: "Node 1",
-    description: "Description of Node 1",
-    selected: false,
-  },
-  {
-    id: 2,
-    name: "Node 2",
-    description: "Description of Node 2",
-    selected: false,
-  },
-  {
-    id: 3,
-    name: "Node 3",
-    description: "Description of Node 3",
-    selected: false,
-  },
-  {
-    id: 4,
-    name: "Node 4",
-    description: "Description of Node 4",
-    selected: false,
-  },
-  {
-    id: 5,
-    name: "Node 5",
-    description: "Description of Node 5",
-    selected: false,
-  },
-  {
-    id: 6,
-    name: "Node 6",
-    description: "Description of Node 6",
-    selected: false,
-  },
-  {
-    id: 7,
-    name: "Node 7",
-    description: "Description of Node 7",
-    selected: false,
-  },
-  {
-    id: 8,
-    name: "Node 8",
-    description: "Description of Node 8",
-    selected: false,
-  },
-  {
-    id: 9,
-    name: "Node 9",
-    description: "Description of Node 9",
-    selected: false,
-  },
-  // Add more nodes as needed
-]);
-
-const selectedNode = ref(null);
-const isSelected = (node) =>
-  props.modelValue.some((selectedNode) => selectedNode.id === node.id);
-
-const toggleNodeSelection = (node) => {
-  const index = props.modelValue.findIndex(
-    (selectedNode) => selectedNode.id === node.id,
-  );
-  if (index === -1) {
-    emit("update:modelValue", [...props.modelValue, node]);
-  } else {
-    const newSelection = [...props.modelValue];
-    newSelection.splice(index, 1);
-    emit("update:modelValue", newSelection);
-  }
-  selectedNode.value = node;
+const isNodeSelected = (node) => {
+  // Ensure props.modelValue is an array before calling .some()
+  return Array.isArray(props.modelValue) && props.modelValue.some(selectedNode => selectedNode.id === node.id);
 };
 
+const emit = defineEmits(["update:modelValue"]);
+
+onMounted(async () => {
+  await store.dispatch("fetchNodes"); // 노드 정보 가져와서 마운트하기.
+});
+
+const selectedNode = ref(null);
+// const isSelected = (node) => {
+//   return selectedNode.value && node.id === selectedNode.value.id;
+// };
+
+const toggleNodeSelection = (node) => {
+  if (node.status !== 0) {
+    console.log("Node is not in a waiting state and cannot be selected.");
+    return;
+  }
+
+  const newSelectedNodes = props.modelValue.includes(node)
+    ? props.modelValue.filter(selectedNode => selectedNode.id !== node.id) // Remove node from selection
+    : [...props.modelValue, node]; // Add node to selection
+
+  emit("update:modelValue", newSelectedNodes);
+
+  // The selectedNode ref doesn't seem necessary for multiple selections.
+  // If you need to track the last selected node for some reason, you can keep this line.
+  // Otherwise, it can be removed.
+  selectedNode.value = newSelectedNodes.find(selectedNode => selectedNode.id === node.id) || null;
+};
+
+const nodeStatusDescription = computed(() => {
+  const statusMap = {
+    0: "waiting",
+    1: "learning",
+    2: "learning complete",
+  };
+  return selectedNode.value
+    ? statusMap[selectedNode.value.status] || "Unknown status"
+    : "";
+});
+
 const sortedSelectedNodes = computed(() => {
+  if (!Array.isArray(props.modelValue)) {
+    return []; // Return an empty array if props.modelValue is not an array
+  }
+  // Proceed with sorting if props.modelValue is an array
   return [...props.modelValue].sort((a, b) => a.name.localeCompare(b.name));
 });
 </script>

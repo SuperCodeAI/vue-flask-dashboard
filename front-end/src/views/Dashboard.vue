@@ -1,14 +1,14 @@
 <script setup>
 import GradientLineChart from "@/examples/Charts/GradientLineChart.vue";
 import ProjectList from "./components/ProjectsList.vue";
-import { onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { onMounted } from "vue";
+import { useStore } from "vuex";
 
 const store = useStore();
 
 onMounted(() => {
   if (store.state.authToken && store.state.userEmail) {
-    store.dispatch('fetchProjects'); // Fetch projects when the component mounts
+    store.dispatch("fetchProjects"); // Fetch projects when the component mounts
   }
 });
 </script>
@@ -47,6 +47,5 @@ onMounted(() => {
         />
       </div>
     </div>
-    
   </div>
 </template>

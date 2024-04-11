@@ -25,11 +25,13 @@ class Dataset(db.Model):
 
 class Node(db.Model):
     node_id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
-    cpu_count = db.Column(db.Integer, nullable=False)
-    total_memory = db.Column(db.Integer, nullable=False)  
-    total_disk = db.Column(db.Integer, nullable=False)  
-    status = db.Column(db.Integer, nullable=False)  # 대기 : 0 , 학습 중 : 1, 학습 완료: 2
+    name = db.Column(db.String(128), nullable=False,unique=True)
+    cpu_core_count = db.Column(db.Integer, nullable=False)
+    total_memory_mb = db.Column(db.Integer, nullable=False)  
+    total_disk_mb = db.Column(db.Integer, nullable=False)  
+    status = db.Column(db.Integer, nullable=False)  # 대기 : 0 , 학습 중 : 1, 학습 완료: 2/ 학습 중단 시 0으로 됨. 
+    instance = db.Column(db.String(255), nullable=True)  # 인스턴스 정보
+    gpu_info = db.Column(db.String(255), nullable=True)  # GPU 정보 및 갯수
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,10 +40,5 @@ class Project(db.Model):
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.dataset_id'), nullable=False)
     status = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    project_nodes = db.Column(db.String, nullable=True)  # 노드 이름의 JSON 리스트를 저장하는 문자열 컬럼
     result = db.Column(db.Text, nullable=True)
-
-class ProjectNode(db.Model):
-    project_node_id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
-    node_id = db.Column(db.Integer, db.ForeignKey('node.node_id'), nullable=False)
-    status = db.Column(db.String(128), nullable=True)

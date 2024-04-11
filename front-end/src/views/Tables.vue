@@ -28,6 +28,17 @@ watch(
   { deep: true },
 );
 
+// const handleSelectedNodeChange = (selectedNode) => {
+//   const index = projectData.nodes.findIndex(node => node.id === selectedNode.id);
+//   if (index > -1) {
+//     // Node is already selected, remove it
+//     projectData.nodes.splice(index, 1);
+//   } else {
+//     // Node is not selected, add it
+//     projectData.nodes.push(selectedNode);
+//   }
+// };
+
 const prepareDataForSubmission = () => {
   return {
     model: projectData.model.model_id,
@@ -65,7 +76,13 @@ const createProject = async () => {
       formattedData,
       config,
     );
-
+    // 프로젝트 생성이 성공했다면, 노드 정보 업데이트
+    if (response && response.status === 200) {
+      console.log("Project created successfully:", response.data);
+      // 프로젝트 생성 후 노드 정보 새로고침
+      await store.dispatch("fetchNodes");
+      // 성공 메시지 처리 또는 사용자 인터페이스 업데이트 등의 추가적인 처리를 여기에 추가할 수 있습니다.
+    }
     console.log(response.data);
     // Handle successful project creation (e.g., redirect or show message)
   } catch (error) {
@@ -181,5 +198,19 @@ const lastSubmittedData = ref(null); // 백엔드로 마지막으로 전송된 �
   border-radius: 5px;
 }
 
+button {
+  border-radius: 5px; /* Adjust the pixel value to control the roundness */
+  background-color: #90ee90; /* This is a light green color */
+  border: none; /* Removes the default border */
+  padding: 10px 20px; /* Adds some padding inside the button */
+  color: rgb(0, 0, 0); /* Changes the text color */
+  font-size: 16px; /* Adjust the font size as needed */
+  cursor: pointer; /* Changes the cursor to a pointer when hovering over the button */
+  transition: background-color 0.3s; /* Smooth transition for background color */
+}
+
+button:hover {
+  background-color: #76c893; /* Slightly darker green color for the hover state */
+}
 /* ... */
 </style>
