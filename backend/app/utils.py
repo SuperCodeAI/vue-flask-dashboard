@@ -4,7 +4,7 @@ from app.models import Node
 
 def fetch_and_store_node_data():
     try:
-        response = requests.get('http://163.180.117.47:20001/api/v1/metrics')
+        response = requests.get('http://13.124.158.135:20001/api/v1/metrics')
         node_data_dict = response.json()
 
         for node_name, node_info in node_data_dict.items():
@@ -41,3 +41,4 @@ def fetch_and_store_node_data():
         db.session.commit()
     except Exception as e:
         print(f"Error fetching or storing node data: {e}")
+        

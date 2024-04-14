@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, ref, computed, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import ModelselectBox from "./components/ModelSelector.vue";
 import DatasetselectBox from "./components/DatasetSelector.vue";
@@ -8,7 +9,9 @@ import NodeselectBox from "./components/NodeSelector.vue";
 import axios from "axios";
 
 const store = useStore();
-
+const router = useRouter(); // Instantiate the router
+const isCreatingProject = ref(false);
+const creationSuccess = ref(false); // New ref to track creation success
 const authToken = computed(() => store.state.authToken);
 
 const projectData = reactive({
@@ -18,8 +21,6 @@ const projectData = reactive({
   nodes: [], // Initially an array of objects, later to be an array of node names
 });
 
-const isCreatingProject = ref(false);
-
 watch(
   projectData.hyperparameters,
   (newVal) => {
@@ -27,6 +28,14 @@ watch(
   },
   { deep: true },
 );
+
+watch(creationSuccess, (newValue) => {
+  if (newValue) {
+    alert("프로젝트가 생성되었습니다."); // Alert the user about success
+    creationSuccess.value = false; // Reset the creation success state
+    router.push("/dashboard-default"); // Redirect to the Dashboard page
+  }
+});
 
 // const handleSelectedNodeChange = (selectedNode) => {
 //   const index = projectData.nodes.findIndex(node => node.id === selectedNode.id);
@@ -76,11 +85,13 @@ const createProject = async () => {
       formattedData,
       config,
     );
+
     // 프로젝트 생성이 성공했다면, 노드 정보 업데이트
     if (response && response.status === 200) {
       console.log("Project created successfully:", response.data);
       // 프로젝트 생성 후 노드 정보 새로고침
       await store.dispatch("fetchNodes");
+      creationSuccess.value = true; // Indicate that the project was created
       // 성공 메시지 처리 또는 사용자 인터페이스 업데이트 등의 추가적인 처리를 여기에 추가할 수 있습니다.
     }
     console.log(response.data);
@@ -159,7 +170,7 @@ const lastSubmittedData = ref(null); // 백엔드로 마지막으로 전송된 �
         @click="createProject"
         :disabled="isCreatingProject"
       >
-        {{ isCreatingProject ? "Creating..." : "Create Project" }}
+        {{ isCreatingProject ? "생성 중" : "프로젝트 생성" }}
       </button>
     </div>
     <div class="last-submitted-data-container">

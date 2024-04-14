@@ -10,23 +10,29 @@
       <div class="node-list">
         <ul>
           <li
-    v-for="node in nodes"
-    :key="node.id"
-    @click="toggleNodeSelection(node)"
-    :class="{ 'selected': isNodeSelected(node) }"
-  >
-    {{ node.name }}
-  </li>
+            v-for="node in nodes"
+            :key="node.id"
+            @click="toggleNodeSelection(node)"
+            :class="{ selected: isNodeSelected(node) }"
+          >
+            {{ node.name }}
+          </li>
         </ul>
       </div>
 
       <div class="node-description" v-if="selectedNode">
         <h4>{{ selectedNode.name }} 설명</h4>
         <!-- Display additional node details -->
-        <p>CPU Core Count: {{ selectedNode.cpu_count }}</p>
-        <p>Total Memory: {{ selectedNode.total_memory }} MB</p>
-        <p>Total Disk: {{ selectedNode.total_disk }} MB</p>
-        <p>Status: {{ nodeStatusDescription }}</p>
+        <p>CPU Core Count: {{ selectedNode.cpu_core_count }}</p>
+        <p>Total Memory: {{ selectedNode.total_memory_mb }} MB</p>
+        <p>Total Disk: {{ selectedNode.total_disk_mb }} MB</p>
+        <p>Status: {{ nodeStatusDescription(selectedNode.status) }}</p>
+        <p v-if="selectedNode.instance">
+          Instance: {{ selectedNode.instance }}
+        </p>
+        <p v-if="selectedNode.gpu_info">
+          GPU Info: {{ selectedNode.gpu_info }}
+        </p>
       </div>
       <div class="node-description" v-else>
         <p>Select a node to see its description.</p>
@@ -50,7 +56,11 @@ import { ref, defineProps, defineEmits, computed, onMounted } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
-const nodes = computed(() => store.getters.userNodes || []);
+
+const nodes = computed(() => {
+  const unsortedNodes = store.getters.userNodes || [];
+  return unsortedNodes.sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by name
+});
 
 const props = defineProps({
   modelValue: {
@@ -60,8 +70,9 @@ const props = defineProps({
 });
 
 const isNodeSelected = (node) => {
-  // Ensure props.modelValue is an array before calling .some()
-  return Array.isArray(props.modelValue) && props.modelValue.some(selectedNode => selectedNode.id === node.id);
+  return props.modelValue.some(
+    (selectedNode) => selectedNode.node_id === node.node_id,
+  );
 };
 
 const emit = defineEmits(["update:modelValue"]);
@@ -71,38 +82,38 @@ onMounted(async () => {
 });
 
 const selectedNode = ref(null);
-// const isSelected = (node) => {
-//   return selectedNode.value && node.id === selectedNode.value.id;
-// };
 
 const toggleNodeSelection = (node) => {
   if (node.status !== 0) {
-    console.log("Node is not in a waiting state and cannot be selected.");
-    return;
+    // If the node is not in a waiting state, display its details without selecting it
+    selectedNode.value = node;
+    console.error("Node is not in a waiting state and cannot be selected.");
+    return; // Exit early without changing the selection
   }
 
-  const newSelectedNodes = props.modelValue.includes(node)
-    ? props.modelValue.filter(selectedNode => selectedNode.id !== node.id) // Remove node from selection
-    : [...props.modelValue, node]; // Add node to selection
+  const isSelected = props.modelValue.some(
+    (selectedNode) => selectedNode.node_id === node.node_id,
+  );
+  let newSelectedNodes = isSelected
+    ? props.modelValue.filter(
+        (selectedNode) => selectedNode.node_id !== node.node_id,
+      )
+    : [...props.modelValue, node];
 
   emit("update:modelValue", newSelectedNodes);
 
-  // The selectedNode ref doesn't seem necessary for multiple selections.
-  // If you need to track the last selected node for some reason, you can keep this line.
-  // Otherwise, it can be removed.
-  selectedNode.value = newSelectedNodes.find(selectedNode => selectedNode.id === node.id) || null;
+  // Set or unset the selectedNode for displaying details
+  selectedNode.value = isSelected ? null : node;
 };
 
-const nodeStatusDescription = computed(() => {
+const nodeStatusDescription = (status) => {
   const statusMap = {
-    0: "waiting",
-    1: "learning",
-    2: "learning complete",
+    0: "대기중",
+    1: "학습중",
+    2: "학습완료",
   };
-  return selectedNode.value
-    ? statusMap[selectedNode.value.status] || "Unknown status"
-    : "";
-});
+  return statusMap[status] || "Unknown status";
+};
 
 const sortedSelectedNodes = computed(() => {
   if (!Array.isArray(props.modelValue)) {

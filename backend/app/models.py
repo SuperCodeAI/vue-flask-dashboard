@@ -30,7 +30,7 @@ class Node(db.Model):
     total_memory_mb = db.Column(db.Integer, nullable=False)  
     total_disk_mb = db.Column(db.Integer, nullable=False)  
     status = db.Column(db.Integer, nullable=False)  # 대기 : 0 , 학습 중 : 1, 학습 완료: 2/ 학습 중단 시 0으로 됨. 
-    instance = db.Column(db.String(255), nullable=True)  # 인스턴스 정보
+    instance = db.Column(db.String(255), nullable=True)  # 인스턴스 해당 노드 ip 정보
     gpu_info = db.Column(db.String(255), nullable=True)  # GPU 정보 및 갯수
 
 class Project(db.Model):

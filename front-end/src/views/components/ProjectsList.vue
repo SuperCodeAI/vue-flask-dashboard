@@ -19,6 +19,9 @@
         <p>{{ selectedProject.dataset_name }}</p>
         <p>Status: {{ selectedProject.status }}</p>
         <p>Created At: {{ selectedProject.created_at }}</p>
+        <p v-if="selectedProject.project_nodes">
+          Nodes: {{ parseNodes(selectedProject.project_nodes) }}
+        </p>
       </div>
       <div class="project-actions-container">
         <button
@@ -33,7 +36,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useStore } from "vuex";
 import axios from "axios";
 
@@ -41,8 +44,34 @@ const store = useStore();
 const projects = computed(() => store.getters.userProjects);
 const selectedProject = ref({});
 
+watch(
+  () => store.getters.userProjects,
+  (newProjects) => {
+    // This watcher ensures that if the selected project updates in the store, it reflects in the component
+    if (selectedProject.value && newProjects.length) {
+      const updatedProject = newProjects.find(
+        (p) => p.id === selectedProject.value.id,
+      );
+      if (updatedProject) {
+        selectedProject.value = updatedProject;
+      }
+    }
+  },
+  { deep: true },
+);
+
 const selectProject = (project) => {
   selectedProject.value = project;
+  const nodeNames = JSON.parse(project.project_nodes); // project.project_nodes는 노드 이름들의 JSON 배열입니다.
+  store.dispatch("updateSelectedProjectNodeNames", nodeNames);
+};
+
+const parseNodes = (nodesJson) => {
+  try {
+    return JSON.parse(nodesJson).join(", "); // Assuming the nodes are stored in a simple array
+  } catch (e) {
+    return "Error parsing nodes";
+  }
 };
 
 const stopTraining = async () => {
@@ -55,22 +84,29 @@ const stopTraining = async () => {
   try {
     const response = await axios.post(
       "http://localhost:5000/api/stop-training",
-      {
-        projectId: selectedProject.value.id, // Send the selected project's ID to the backend
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${store.state.authToken}`,
-        },
-      },
+      { projectId: selectedProject.value.id },
+      { headers: { Authorization: `Bearer ${store.state.authToken}` } },
     );
     if (response.data.success) {
       console.log("학습 중단 요청 성공", selectedProject.value.id);
-      // 요청 성공 후 필요한 상태 업데이트 로직 추가
-      // Here you could update the status in the `projects` array or trigger a re-fetch, for example
+      alert("학습 중단 요청이 성공했습니다."); // Alert for success
+      // Refetch projects to update the list
+      await store.dispatch("fetchProjects");
+      // Update selectedProject to reflect the changes if it's still selected
+      const updatedProject = store.getters.userProjects.find(
+        (p) => p.id === selectedProject.value.id,
+      );
+      if (updatedProject) {
+        selectedProject.value = updatedProject;
+      }
+    } else {
+      // Handle case where response.data.success is false
+      throw new Error("학습 중단 요청이 실패했습니다.");
     }
   } catch (error) {
     console.error("학습 중단 요청 실패", selectedProject.value.id, error);
+    // Display an error message to the user
+    alert("학습 중지 요청에 실패하였습니다."); // Use a more user-friendly error handling instead of alert
   }
 };
 </script>
@@ -99,10 +135,11 @@ const stopTraining = async () => {
 }
 
 .project-list-container {
+  max-height: 400px; /* Set this to whatever height you want */
+  overflow-y: auto; /* This will allow scrolling */
   border-right: 1px solid #ddd;
   flex: 1;
 }
-
 .project-list {
   list-style: none;
   padding: 0;

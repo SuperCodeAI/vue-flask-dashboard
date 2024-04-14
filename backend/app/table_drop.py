@@ -1,5 +1,5 @@
 from app import db
-from app.models import User, Model, Dataset, Node, Project, ProjectNode
+from app.models import User, Model, Dataset, Node, Project
 
 def drop_user_table():
     User.__table__.drop(db.engine)
@@ -19,10 +19,6 @@ def drop_node_table():
 
 def drop_project_table():
     Project.__table__.drop(db.engine)
-    db.session.commit()
-    
-def drop_projectNode_table():
-    ProjectNode.__table__.drop(db.engine)
     db.session.commit()
     
 # Functions to delete all data from tables

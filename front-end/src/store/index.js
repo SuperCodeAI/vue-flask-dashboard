@@ -24,6 +24,9 @@ export default createStore({
     datasets: [],
     projects: [], // Add a projects array to your state
     nodes: [], // State property for nodes
+    nodesData: {},
+    maxHistoricalEntries: 180,
+    selectedProjectNodeNames: [],
   },
   mutations: {
     toggleConfigurator(state) {
@@ -78,6 +81,27 @@ export default createStore({
     },
     setNodes(state, nodes) {
       state.nodes = nodes; // 노드 데이터들 가져옴.
+    },
+    setRealTimeData(state, { nodeName, key, value }) {
+      if (!state.nodesData[nodeName]) {
+        state.nodesData[nodeName] = { realTime: {}, historical: {} };
+      }
+      state.nodesData[nodeName].realTime[key] = value;
+    },
+
+    addHistoricalDataEntry(state, { nodeName, key, value }) {
+      if (!state.nodesData[nodeName]) {
+        state.nodesData[nodeName] = { realTime: {}, historical: {} };
+      }
+      let dataArray = state.nodesData[nodeName].historical[key] || [];
+      dataArray.push(value);
+      if (dataArray.length > state.maxHistoricalEntries) {
+        dataArray.shift(); // Remove the oldest entry
+      }
+      state.nodesData[nodeName].historical[key] = dataArray;
+    },
+    setSelectedProjectNodeNames(state, nodeNames) {
+      state.selectedProjectNodeNames = nodeNames;
     },
   },
   actions: {
@@ -152,9 +176,51 @@ export default createStore({
         console.error("Error fetching nodes:", error);
       }
     },
+    async fetchData({ commit }) {
+      // 백엔드에서 노들의 모니터링 정보 요청
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/data/nodemonitoring",
+        );
+
+        // Process each node's metrics
+        Object.keys(response.data).forEach((nodeName) => {
+          const { realTime, historical } = response.data[nodeName];
+
+          // Update real-time data
+          for (let key in realTime) {
+            commit("setRealTimeData", { nodeName, key, value: realTime[key] });
+          }
+
+          // Update historical data
+          for (let key in historical) {
+            commit("addHistoricalDataEntry", {
+              nodeName,
+              key,
+              value: historical[key],
+            });
+          }
+        });
+      } catch (error) {
+        console.error("Failed to fetch node data:", error);
+      }
+    },
+    updateSelectedProjectNodeNames({ commit }, nodeNames) {
+      commit("setSelectedProjectNodeNames", nodeNames);
+    },
   },
+
   getters: {
     userProjects: (state) => state.projects, // Add a getter for the projects
     userNodes: (state) => state.nodes,
+    getNodeData: (state) => (nodeName) =>
+      state.nodesData[nodeName] || { realTime: {}, historical: {} },
+    getNodeMemory: (state) => (nodeName) => {
+      const node = state.nodesData[nodeName] || {
+        realTime: {},
+        historical: {},
+      };
+      return node.realTime.memoryFree || null; // 'memoryFree' 키를 사용하여 메모리 데이터에 접근
+    },
   },
 });

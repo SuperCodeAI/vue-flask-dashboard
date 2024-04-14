@@ -5,6 +5,7 @@ from flask_jwt_extended import create_access_token , get_jwt_identity, jwt_requi
 import requests
 import json
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import timedelta
 
 main = Blueprint('main', __name__)
 
@@ -39,7 +40,8 @@ def signin():
     # 사용자가 존재하고 비밀번호가 맞는 경우
     if user and check_password_hash(user.password_hash, password):
         # 토큰 생성
-        access_token = create_access_token(identity=email)
+        expires = timedelta(hours=3)  # 만료 시간 설정 3시간 
+        access_token = create_access_token(identity=email, expires_delta=expires)
         return jsonify(access_token=access_token, email=email), 200
     else:
         # 실패한 경우
@@ -82,13 +84,21 @@ def submit_training():
         db.session.commit()
 
         current_app.logger.info(f"프로젝트 생성 성공: Project ID {new_project.id}")
+        
+        node_instances = []
+        for node_name in data['nodes']:
+            node = Node.query.filter_by(name=node_name).first()
+            if node:
+                node_instances.append(node.instance)
+            else:
+                node_instances.append("Unknown")  # 노드가 찾아지지 않을 경우
 
         modified_data = {
             "id": new_project.id,
             "model": model.model_id,  # 여기는 정수형 ID
             "dataset": dataset.dataset_id,  # 여기는 정수형 ID
             "hyperparameters": data['hyperparameters'],
-            "nodes": data['nodes']
+            "nodes": node_instances  # 노드 인스턴스 정보
         }
         current_app.logger.info(f"수정된 파일: {modified_data}")
 
@@ -203,7 +213,8 @@ def fetch_projects():
             "dataset_name": dataset.name if dataset else "Dataset not found",
             "status": project.status,
             "created_at": project.created_at.strftime("%Y-%m-%d %H:%M:%S") if project.created_at else "N/A",
-            "result": project.result
+            "result": project.result,
+            "project_nodes": project.project_nodes if project.project_nodes else "No nodes assigned"  # 이제 project_nodes 정보도 포함시킵니다.
         })
     print(projects_data)
     return jsonify(projects_data)
@@ -222,19 +233,67 @@ def stop_training():
 
     # 다른 백엔드로 학습 중단 요청 보내기
     try:
-        response = requests.delete(f'http://163.180.117.160:8000/status/{project_id}')
-        if response.status_code == 200:
+        response = requests.delete(f'http://163.180.117.160:8000/training/{project_id}')
+        response_data = response.json()
+
+        # Check the 'success' field in the response data
+        if response.status_code == 200 and response_data.get('success'):
             # 프로젝트 상태 업데이트
             project.status = '중단됨'
             # 프로젝트에 연결된 노드들의 상태를 대기(0)로 변경
-            node_names = project.project_nodes.split(',')  # project_nodes 필드가 노드 이름의 쉼표로 구분된 문자열이라고 가정
+            node_names = json.loads(project.project_nodes)
+            current_app.logger.info(f"Processing stop training for nodes: {node_names}")
             for node_name in node_names:
                 node = Node.query.filter_by(name=node_name).first()
                 if node:
                     node.status = 0  # 대기 상태로 설정
+                    current_app.logger.info(f"Node {node_name} status updated to waiting")
+                else:
+                    current_app.logger.warning(f"No node found with the name {node_name}")    
             db.session.commit()
             return jsonify({"success": True, "message": "Training stopped successfully"}), 200
         else:
-            return jsonify({"error": "Failed to stop training in external backend"}), response.status_code
+            error_message = response_data.get('message', 'Unknown error')
+            return jsonify({"error": error_message}), response.status_code
+
     except Exception as e:
+        current_app.logger.error(f"Error during stopping training: {e}")
         return jsonify({"error": str(e)}), 500
+    
+@main.route('/api/data/nodemonitoring', methods=['GET'])
+def process_node_monitoring_data():
+    try:
+        # 다른 백엔드에서 데이터를 가져옵니다.
+        response = requests.get('http://13.124.158.135:20001/api/v1/metrics')
+        response.raise_for_status()
+        data = response.json()
+
+        # 가공할 데이터를 준비합니다.
+        processed_data = {}
+
+        for node_name, node_info in data.items():
+            # 필요한 메트릭을 추출합니다.
+            metrics = node_info['metrics']
+            realTime = {
+                "memoryFree": int(float(metrics[3]) / (1024 ** 2)),
+                "diskFree": int(float(metrics[4]) / (1024 ** 2))
+            }
+            historical = {
+                "cpuUtilization": float(metrics[1]),
+                "gpuUtilization": metrics[7] if metrics[7] is not None else 0,
+                "gpuTemperature": metrics[5] if metrics[5] is not None else 0,
+                "gpuPowerUsage": metrics[6] if metrics[6] is not None else 0,
+            }
+            processed_data[node_name] = {
+                "realTime": realTime,
+                "historical": historical
+            }
+        print(processed_data)
+        return jsonify(processed_data)
+
+    except requests.HTTPError as http_err:
+        # 외부 요청 중 발생한 HTTP 에러 처리
+        return jsonify({"error": "External backend error", "details": str(http_err)}), 500
+    except Exception as err:
+        # 기타 예외 처리
+        return jsonify({"error": "An error occurred", "details": str(err)}), 500
