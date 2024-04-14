@@ -9,17 +9,22 @@ const store = useStore();
 const filteredNodes = computed(() => {
   const allNodes = store.getters.userNodes;
   const selectedNodeNames = store.state.selectedProjectNodeNames;
+  console.log("선택된 리스트의 노드 스팩 정보 가져오는 중 ")
+  console.log(allNodes.filter((node) => selectedNodeNames.includes(node.name)))
   return allNodes.filter((node) => selectedNodeNames.includes(node.name));
 });
 
-
-const getNodeFreeMemory = (nodeName) => {
-  const selectedNodeNames = store.state.selectedProjectNodeNames;
-  if (selectedNodeNames.includes(nodeName)) {
-    return store.getters.getNodeMemory(nodeName) || 0;
-  }
-  return 0; // If the node is not part of the selected project, return 0
-};
+// 남은 메모리 정보를 저장하는 객체
+const nodeFreeMemories = computed(() => {
+  const memories = {};
+  filteredNodes.value.forEach(node => {
+    // 여기에서 각 노드의 메모리 정보를 메모리 객체에 저장하고 바로 로그를 출력
+    const memory = store.getters.getNodeMemory(node.name) || 0;
+    memories[node.name] = memory;
+    console.log("남은 메모리 가져오는 중: ", node.name, memory);
+  });
+  return memories;
+});
 
 onMounted(() => {
   // 인증 토큰과 사용자 이메일이 있을 때만 프로젝트 목록을 가져옵니다.
@@ -34,6 +39,7 @@ onMounted(() => {
 onUnmounted(() => {
   stopFetchingNodeMonitoringData();
 });
+
 
 // 실시간 데이터를 Store에 주기적으로 가져오기 위한 로직입니다.
 const dataInterval = ref(null);
@@ -56,28 +62,41 @@ function stopFetchingNodeMonitoringData() {
 
 <template>
   <div class="dashboard">
-    <ProjectList />
-    <MemoryGauge
+    <div class="project-list-container">
+      <ProjectList />
+    </div>
+    <div
+      class="memory-gauge-container"
       v-for="node in filteredNodes"
       :key="node.id"
-      :nodeName="node.name"
-      :total-size="node?.total_memory_mb"
-      :remaining-size="getNodeFreeMemory(node.name)"
-    />
-    <div class="memory-info">
-        Total Memory: {{ node.total_memory_mb }} MB
-        <br>
-        Free Memory: {{ getNodeFreeMemory(node.name) }} MB
-      </div>
+    >
+      <MemoryGauge
+        :nodeName="node.name"
+        :total-size="node.total_memory_mb"
+        :remaining-size="nodeFreeMemories[node.name]"
+      />
+    </div>
   </div>
 </template>
 
 <style>
 .dashboard {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-around;
+  flex-wrap: wrap; /* Ensure that items can wrap */
+  align-items: flex-start; /* Align items to the start of the flex container */
+  justify-content: flex-start; /* Align items to the start on the main axis */
+  gap: 20px; /* Adds space between items */
+  padding: 20px; /* Add padding inside the dashboard container */
+}
+
+.project-list-container {
+  flex-basis: 100%; /* Make the ProjectList take full width */
+  max-width: 100%; /* Ensure it does not exceed the width of the container */
+}
+.memory-gauge-container {
+  flex: 1; /* Allow MemoryGauge components to grow and take available space */
+  min-width: calc(50% - 30px); /* Minimum width for MemoryGauge components, accounting for the gap */
+  max-width: calc(50% - 30px); /* Maximum width for MemoryGauge components, accounting for the gap */
 }
 
 .node-info {

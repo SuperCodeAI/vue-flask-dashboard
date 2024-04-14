@@ -160,6 +160,7 @@ export default createStore({
           },
         )
         .then((response) => {
+          console.log("Fetched Projects:", response.data); // 로그를 추가하여 가져온 프로젝트 정보 출력
           commit("setProjects", response.data); // commit the projects to the state
         })
         .catch((error) => {
@@ -182,14 +183,19 @@ export default createStore({
         const response = await axios.get(
           "http://localhost:5000/api/data/nodemonitoring",
         );
+        console.log("Fetched node monitoring data:", response.data); // Log the fetched data
 
         // Process each node's metrics
         Object.keys(response.data).forEach((nodeName) => {
           const { realTime, historical } = response.data[nodeName];
+          console.log(`Processing data for node: ${nodeName}`); // Log node being processed
 
           // Update real-time data
           for (let key in realTime) {
             commit("setRealTimeData", { nodeName, key, value: realTime[key] });
+            console.log(
+              `Updated real-time data for ${nodeName}: ${key} = ${realTime[key]}`,
+            ); // Log each real-time update
           }
 
           // Update historical data
@@ -199,6 +205,9 @@ export default createStore({
               key,
               value: historical[key],
             });
+            console.log(
+              `Updated historical data for ${nodeName}: ${key} = ${historical[key]}`,
+            ); // Log each historical update
           }
         });
       } catch (error) {

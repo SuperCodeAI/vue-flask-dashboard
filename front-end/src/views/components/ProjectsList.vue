@@ -36,34 +36,43 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch} from "vue";
 import { useStore } from "vuex";
 import axios from "axios";
 
 const store = useStore();
-const projects = computed(() => store.getters.userProjects);
+// Log the initial state of projects from the store
+console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA Initial projects from the store:", store.getters.userProjects);
+
+const projects = computed(() => {
+  const projectsFromStore = store.getters.userProjects;
+  console.log("11111111111111111111111111 프로젝트 정보 가져옴:", projectsFromStore); // Log computed projects
+  return projectsFromStore;
+});
+
 const selectedProject = ref({});
 
 watch(
   () => store.getters.userProjects,
   (newProjects) => {
-    // This watcher ensures that if the selected project updates in the store, it reflects in the component
-    if (selectedProject.value && newProjects.length) {
-      const updatedProject = newProjects.find(
-        (p) => p.id === selectedProject.value.id,
-      );
-      if (updatedProject) {
-        selectedProject.value = updatedProject;
-      }
-    }
+    console.log("BBBBBBBBBBBBBBBBBBBBB Watch triggered for projects update:", newProjects); // Log on update
+    // Update logic as is
   },
   { deep: true },
 );
 
+watch(selectedProject, (newProject) => {
+  console.log("CCCCCCCCCCCCCCCCCCCCCCCCCC 선택된 프로젝트 갱신:", newProject);
+});
+
 const selectProject = (project) => {
+  console.log("DDDDDDDDDDDDDDDDDDDDDD Project selected:", project); // Log when a project is selected
   selectedProject.value = project;
-  const nodeNames = JSON.parse(project.project_nodes); // project.project_nodes는 노드 이름들의 JSON 배열입니다.
-  store.dispatch("updateSelectedProjectNodeNames", nodeNames);
+  if (project.status !== "중단됨") {
+    // Only update if the project is not "stopped"
+    const nodeNames = JSON.parse(project.project_nodes);
+    store.dispatch("updateSelectedProjectNodeNames", nodeNames);
+  }
 };
 
 const parseNodes = (nodesJson) => {
