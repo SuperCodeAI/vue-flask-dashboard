@@ -231,5 +231,12 @@ export default createStore({
       };
       return node.realTime.memoryFree || null; // 'memoryFree' 키를 사용하여 메모리 데이터에 접근
     },
+    getNodeDisk: (state) => (nodeName) => {
+      const node = state.nodesData[nodeName] || {
+        realTime: {},
+        historical: {},
+      };
+      return node.realTime.diskFree || null; // 'diskFre' 키를 사용하여 메모리 데이터에 접근
+    },
   },
 });

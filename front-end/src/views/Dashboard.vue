@@ -1,6 +1,7 @@
 <script setup>
 import ProjectList from "./components/ProjectsList.vue";
 import MemoryGauge from "./components/MemoryGaugeComponent.vue";
+import DiskGauge from "./components/DiskGaugeComponent.vue";
 import { onMounted, onUnmounted, computed, ref} from "vue";
 import { useStore } from "vuex";
 
@@ -24,6 +25,17 @@ const nodeFreeMemories = computed(() => {
     console.log("남은 메모리 가져오는 중: ", node.name, memory);
   });
   return memories;
+});
+
+const nodeFreeDisk = computed(() => {
+  const Disks = {};
+  filteredNodes.value.forEach(node => {
+    // 여기에서 각 노드의 디스크 정보를 메모리 객체에 저장하고 바로 로그를 출력
+    const Disk = store.getters.getNodeDisk(node.name) || 0;
+    Disks[node.name] = Disk;
+    console.log("남은 디스크가져오는 중: ", node.name, Disk);
+  });
+  return Disks;
 });
 
 onMounted(() => {
@@ -65,16 +77,39 @@ function stopFetchingNodeMonitoringData() {
     <div class="project-list-container">
       <ProjectList />
     </div>
-    <div
-      class="memory-gauge-container"
-      v-for="node in filteredNodes"
-      :key="node.id"
-    >
-      <MemoryGauge
-        :nodeName="node.name"
-        :total-size="node.total_memory_mb"
-        :remaining-size="nodeFreeMemories[node.name]"
-      />
+    <!-- Memory Usage Section -->
+    <div v-if="filteredNodes.length > 0">
+      <h2 class="memory-gauge-header">메모리 사용량</h2>
+      <div class="memory-gauge-wrapper">
+        <div
+          class="memory-gauge-container"
+          v-for="node in filteredNodes"
+          :key="node.id"
+        >
+          <MemoryGauge
+            :nodeName="node.name"
+            :total-size="node.total_memory_mb"
+            :remaining-size="nodeFreeMemories[node.name]"
+          />
+        </div>
+      </div>
+    </div>
+    <!-- Disk Usage Section -->
+    <div v-if="filteredNodes.length > 0">
+      <h2 class="disk-gauge-header">디스크 사용량</h2>
+      <div class="disk-gauge-wrapper">
+        <div
+          class="disk-gauge-container"
+          v-for="node in filteredNodes"
+          :key="node.id"
+        >
+          <DiskGauge
+            :nodeName="node.name"
+            :total-size="node.total_disk_mb" 
+            :remaining-size="nodeFreeDisk[node.name]"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -82,19 +117,52 @@ function stopFetchingNodeMonitoringData() {
 <style>
 .dashboard {
   display: flex;
-  flex-wrap: wrap; /* Ensure that items can wrap */
-  align-items: flex-start; /* Align items to the start of the flex container */
-  justify-content: flex-start; /* Align items to the start on the main axis */
-  gap: 20px; /* Adds space between items */
-  padding: 20px; /* Add padding inside the dashboard container */
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 20px;
+  padding: 20px;
 }
 
 .project-list-container {
-  flex-basis: 100%; /* Make the ProjectList take full width */
-  max-width: 100%; /* Ensure it does not exceed the width of the container */
+  flex-basis: 100%;
+  max-width: 100%;
 }
+
+.memory-gauge-header {
+  width: 100%; /* Ensures the header spans the full width */
+  text-align: center; /* Center the text */
+  margin-top: 0;
+  margin-bottom: 20px; /* Space before the gauges */
+}
+
+.memory-gauge-wrapper {
+  display: flex;
+  flex-wrap: wrap; /* Allows gauge containers to wrap */
+  width: 100%; /* Takes full width */
+}
+
 .memory-gauge-container {
-  flex: 1; /* Allow MemoryGauge components to grow and take available space */
+  flex: 1;
+  min-width: calc(50% - 30px); /* Minimum width for MemoryGauge components, accounting for the gap */
+  max-width: calc(50% - 30px); /* Maximum width for MemoryGauge components, accounting for the gap */
+}
+
+.disk-gauge-header {
+  width: 100%; /* Ensures the header spans the full width */
+  text-align: center; /* Center the text */
+  margin-top: 0;
+  margin-bottom: 20px; /* Space before the gauges */
+}
+
+.disk-gauge-wrapper {
+  display: flex;
+  flex-wrap: wrap; /* Allows gauge containers to wrap */
+  width: 100%; /* Takes full width */
+}
+
+.disk-gauge-container {
+  flex: 1;
   min-width: calc(50% - 30px); /* Minimum width for MemoryGauge components, accounting for the gap */
   max-width: calc(50% - 30px); /* Maximum width for MemoryGauge components, accounting for the gap */
 }
