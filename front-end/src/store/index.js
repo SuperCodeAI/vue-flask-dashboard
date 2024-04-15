@@ -25,8 +25,10 @@ export default createStore({
     projects: [], // Add a projects array to your state
     nodes: [], // State property for nodes
     nodesData: {},
-    maxHistoricalEntries: 180,
+    maxHistoricalEntries: 20,
     selectedProjectNodeNames: [],
+    projectsInfo: {},
+    selectedProjectId: null
   },
   mutations: {
     toggleConfigurator(state) {
@@ -90,19 +92,38 @@ export default createStore({
     },
 
     addHistoricalDataEntry(state, { nodeName, key, value }) {
-      if (!state.nodesData[nodeName]) {
-        state.nodesData[nodeName] = { realTime: {}, historical: {} };
+      try {
+        if (!state.nodesData[nodeName]) {
+          state.nodesData[nodeName] = { realTime: {}, historical: {} };
+        }
+        let dataArray = state.nodesData[nodeName].historical[key] || [];
+        if (!Array.isArray(dataArray)) {
+          dataArray = []; // If the existing data is not an array, initialize it as a new array
+        }
+
+        dataArray.push(value); // add new value to array
+        console.log(`dddd: ${key} =`, [...dataArray]); // 데이터 복사본 로깅 // logging array status
+
+        if (dataArray.length > state.maxHistoricalEntries) {
+          dataArray.shift(); // remove oldest data
+        }
+
+        console.log(`ffff: ${key} =`, [...dataArray]); // 데이터 복사본 로깅 // Logging final array status
+        state.nodesData[nodeName].historical[key] = dataArray;
+      } catch (error) {
+        console.error("Error in addHistoricalDataEntry mutation:", error);
       }
-      let dataArray = state.nodesData[nodeName].historical[key] || [];
-      dataArray.push(value);
-      if (dataArray.length > state.maxHistoricalEntries) {
-        dataArray.shift(); // Remove the oldest entry
-      }
-      state.nodesData[nodeName].historical[key] = dataArray;
     },
     setSelectedProjectNodeNames(state, nodeNames) {
       state.selectedProjectNodeNames = nodeNames;
     },
+    setProjectInfo(state, project) {
+      // Directly set or update a single project by ID
+      state.projectsInfo[project.id] = project;
+    },
+    setSelectedProjectId(state, projectId) {   // 선택된 노드 정보 저장
+      state.selectedProjectId = projectId;
+    }
   },
   actions: {
     toggleSidebarColor({ commit }, payload) {
@@ -111,7 +132,7 @@ export default createStore({
     signin({ commit }, credentials) {
       return new Promise((resolve, reject) => {
         axios
-          .post("http://localhost:5000/api/signin", credentials)
+          .post("http://163.180.117.23:5000/api/signin", credentials)
           .then((response) => {
             commit("setAuthToken", response.data.access_token);
             commit("setUserEmail", response.data.email); // 이메일 저장
@@ -129,7 +150,7 @@ export default createStore({
     async fetchModels({ commit }) {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/data/models",
+          "http://163.180.117.23:5000/api/data/models",
         );
         commit("setModels", response.data);
       } catch (error) {
@@ -139,7 +160,7 @@ export default createStore({
     async fetchDatasets({ commit }) {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/data/datasets",
+          "http://163.180.117.23:5000/api/data/datasets",
         );
         commit("setDatasets", response.data);
       } catch (error) {
@@ -149,7 +170,7 @@ export default createStore({
     fetchProjects({ commit, state }) {
       axios
         .post(
-          "http://localhost:5000/api/data/projects",
+          "http://163.180.117.23:5000/api/data/projects",
           {
             email: state.userEmail, // send the stored email
           },
@@ -170,7 +191,7 @@ export default createStore({
     async fetchNodes({ commit }) {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/data/nodes",
+          "http://163.180.117.23:5000/api/data/nodes",
         );
         commit("setNodes", response.data); // Commit the node data to the state
       } catch (error) {
@@ -181,7 +202,7 @@ export default createStore({
       // 백엔드에서 노들의 모니터링 정보 요청
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/data/nodemonitoring",
+          "http://163.180.117.23:5000/api/data/nodemonitoring",
         );
         console.log("Fetched node monitoring data:", response.data); // Log the fetched data
 
@@ -200,6 +221,10 @@ export default createStore({
 
           // Update historical data
           for (let key in historical) {
+            console.log(
+              `Committing historical data for ${nodeName}: ${key} = ${historical[key]}`,
+            );
+            console.log(`Node: ${nodeName}, Key: ${key}, Value:`, historical[key]);
             commit("addHistoricalDataEntry", {
               nodeName,
               key,
@@ -217,6 +242,25 @@ export default createStore({
     updateSelectedProjectNodeNames({ commit }, nodeNames) {
       commit("setSelectedProjectNodeNames", nodeNames);
     },
+    fetchProjectInfoById({ commit, state }, projectId) {
+      if (state.authToken && state.userEmail) { // Ensure userEmail check is also consistent with your authentication logic
+        axios.get(`http://163.180.117.23:5000/api/projects/${projectId}`, {
+          headers: {
+            Authorization: `Bearer ${state.authToken}`
+          }
+        })
+        .then(response => {
+          commit('setProjectInfo', response.data);
+        })
+        .catch(error => {
+          console.error(`Error fetching project ${projectId}:`, error);
+        });
+      }
+
+    },
+    updateSelectedProjectId({ commit }, projectId) {           //선택된 프로젝트 Id 저장 하는 함수
+      commit('setSelectedProjectId', projectId);
+    }
   },
 
   getters: {
@@ -237,6 +281,13 @@ export default createStore({
         historical: {},
       };
       return node.realTime.diskFree || null; // 'diskFre' 키를 사용하여 메모리 데이터에 접근
+    },
+    getNodeGpuTem: (state) => (nodeName) => {
+      const node = state.nodesData[nodeName] || {
+        realTime: {},
+        historical: {},
+      };
+      return node.historical.gpuTemperature || null; // 'gpuTemperature' 키를 사용하여 메모리 데이터에 접근
     },
   },
 });

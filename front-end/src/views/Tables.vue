@@ -81,7 +81,7 @@ const createProject = async () => {
     };
 
     const response = await axios.post(
-      "http://localhost:5000/api/create-project",
+      "http://163.180.117.23:5000/api/create-project",
       formattedData,
       config,
     );

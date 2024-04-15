@@ -67,35 +67,35 @@ const createChartConfig = (chartData, nodeName) => {
             size: 18,
           },
           formatter: (value, context) => {
-    // Display integer values instead of decimals
-    if (context.dataIndex === 0) {
-      // Used memory label
-      return parseInt(value) + "MB";
-    } else {
-      // Remaining memory label
-      return parseInt(value) + "MB";
-    }
-  },
+            // Display integer values instead of decimals
+            if (context.dataIndex === 0) {
+              // Used memory label
+              return parseInt(value) + "MB";
+            } else {
+              // Remaining memory label
+              return parseInt(value) + "MB";
+            }
+          },
           anchor: "center",
           align: "center",
           offset: -10, // Adjust offset as needed
           labels: {
             title: {
               font: {
-                size: '18'
-              }
+                size: "18",
+              },
             },
             value: {
-              color: 'black'
-            }
-          }
+              color: "black",
+            },
+          },
         },
         // Additional configuration for the center label
         centerLabel: {
-          color: '#FF6384',
+          color: "#FF6384",
           font: {
-            weight: 'bold',
-            size: '20' // Size of the center label
+            weight: "bold",
+            size: "20", // Size of the center label
           },
           // You could create a custom plugin to handle this but for simplicity, we're defining the style here
         },
@@ -110,48 +110,56 @@ const createChartConfig = (chartData, nodeName) => {
         },
       },
     },
-    plugins: [ChartDataLabels, {
-      // Plugin to render the center label
-      afterDraw: chart => {
-        let ctx = chart.ctx;
-        ctx.save();
-        const centerLabel = ((chartData.datasets[0].data[0] / totalSize) * 100).toFixed(2) + '%'; // Calculate percentage
-        const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
-        const centerY =chart.chartArea.bottom -40 ;
-        ctx.font = '30px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '90ee90'; // Center label color
-        ctx.fillText(centerLabel, centerX, centerY);
-        ctx.restore();
-      }
-    }], // Register the plugin here
+    plugins: [
+      ChartDataLabels,
+      {
+        // Plugin to render the center label
+        afterDraw: (chart) => {
+          let ctx = chart.ctx;
+          ctx.save();
+          const centerLabel =
+            ((chartData.datasets[0].data[0] / totalSize) * 100).toFixed(2) +
+            "%"; // Calculate percentage
+          const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+          const centerY = chart.chartArea.bottom - 40;
+          ctx.font = "30px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "90ee90"; // Center label color
+          ctx.fillText(centerLabel, centerX, centerY);
+          ctx.restore();
+        },
+      },
+    ], // Register the plugin here
   };
 };
 
-
 onMounted(() => {
   if (chartCanvas.value) {
-    const context = chartCanvas.value.getContext('2d');
+    const context = chartCanvas.value.getContext("2d");
     if (context) {
       const config = createChartConfig(memoryUsageData.value, props.nodeName);
       myChart = new Chart(context, config);
     } else {
-      console.error('Failed to get canvas context');
+      console.error("Failed to get canvas context");
     }
   } else {
-    console.error('Canvas element not found');
+    console.error("Canvas element not found");
   }
 });
 
-watch(() => [props.totalSize, props.remainingSize], (newValues) => {
-  if (myChart) {
-    const newChartData = createChartData(...newValues);
-    myChart.data = newChartData;
-    myChart.options = createChartConfig(newChartData, props.nodeName).options;
-    myChart.update();
-  }
-}, { immediate: true });
+watch(
+  () => [props.totalSize, props.remainingSize],
+  (newValues) => {
+    if (myChart) {
+      const newChartData = createChartData(...newValues);
+      myChart.data = newChartData;
+      myChart.options = createChartConfig(newChartData, props.nodeName).options;
+      myChart.update();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style>

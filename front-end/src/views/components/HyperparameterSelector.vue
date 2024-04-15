@@ -40,7 +40,6 @@
         <select id="optimizer" v-model.number="localHyperparameters.optimizer">
           <option value="1">Adam</option>
           <option value="2">SGD</option>
-          <option value="3">RMSprop</option>
         </select>
       </div>
       <div class="form-group">
@@ -49,9 +48,8 @@
           id="lossFunction"
           v-model.number="localHyperparameters.lossFunction"
         >
-          <option value="1">Categorical Crossentropy</option>
-          <option value="2">Sparse Categorical Crossentropy</option>
-          <option value="3">Mean Squared Error</option>
+          <option value="1">Crossentropy</option>
+          <option value="2">Mean Squared Error</option>
         </select>
       </div>
     </div>

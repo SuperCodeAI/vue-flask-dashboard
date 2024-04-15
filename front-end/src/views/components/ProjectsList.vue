@@ -36,17 +36,23 @@
 </template>
 
 <script setup>
-import { computed, ref, watch} from "vue";
+import { computed, ref, watch } from "vue";
 import { useStore } from "vuex";
 import axios from "axios";
 
 const store = useStore();
 // Log the initial state of projects from the store
-console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA Initial projects from the store:", store.getters.userProjects);
+console.log(
+  "Initial projects from the store:",
+  store.getters.userProjects,
+);
 
 const projects = computed(() => {
   const projectsFromStore = store.getters.userProjects;
-  console.log("11111111111111111111111111 프로젝트 정보 가져옴:", projectsFromStore); // Log computed projects
+  console.log(
+    "프로젝트 정보 가져옴:",
+    projectsFromStore,
+  ); // Log computed projects
   return projectsFromStore;
 });
 
@@ -55,20 +61,25 @@ const selectedProject = ref({});
 watch(
   () => store.getters.userProjects,
   (newProjects) => {
-    console.log("BBBBBBBBBBBBBBBBBBBBB Watch triggered for projects update:", newProjects); // Log on update
+    console.log(
+      " Watch triggered for projects update:",
+      newProjects,
+    ); // Log on update
     // Update logic as is
   },
   { deep: true },
 );
 
 watch(selectedProject, (newProject) => {
-  console.log("CCCCCCCCCCCCCCCCCCCCCCCCCC 선택된 프로젝트 갱신:", newProject);
+  console.log("선택된 프로젝트 갱신:", newProject);
 });
 
 const selectProject = (project) => {
-  console.log("DDDDDDDDDDDDDDDDDDDDDD Project selected:", project); // Log when a project is selected
+  console.log("Project selected:", project); // Log when a project is selected
   selectedProject.value = project;
   if (project.status !== "중단됨") {
+    
+    store.commit('setSelectedProjectId', project.id)
     // Only update if the project is not "stopped"
     const nodeNames = JSON.parse(project.project_nodes);
     store.dispatch("updateSelectedProjectNodeNames", nodeNames);

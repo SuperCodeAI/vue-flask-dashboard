@@ -53,7 +53,6 @@ def signin():
 @jwt_required()
 def submit_training():
     current_user_email = get_jwt_identity()
-    #current_user_email = "123123@123.com"
     current_user = User.query.filter_by(email=current_user_email).first()
     
     current_app.logger.info(f"유저 ID: {current_user}")
@@ -82,27 +81,41 @@ def submit_training():
         )
         db.session.add(new_project)
         db.session.commit()
-
+        
         current_app.logger.info(f"프로젝트 생성 성공: Project ID {new_project.id}")
         
         node_instances = []
         for node_name in data['nodes']:
             node = Node.query.filter_by(name=node_name).first()
             if node:
-                node_instances.append(node.instance)
+                ip_address = node.instance.split(':')[0]  # 콜론을 기준으로 분리하고 첫 번째 부분(IP 주소)만 사용
+                node_instances.append(ip_address)
             else:
                 node_instances.append("Unknown")  # 노드가 찾아지지 않을 경우
+                
+        # 노드 모니터링 데이터 가져오기
+        monitoring_response = requests.get('http://13.124.158.135:20001/api/v1/metrics')
+        monitoring_response.raise_for_status()
+        monitoring_data = monitoring_response.json()
 
+        node_statuses = []
+        for node_name, node_info in monitoring_data.items():
+            metrics = node_info['metrics']
+            node_statuses.append(metrics)  # metrics 배열을 그대로 사용
+            
+        # 전송할 데이터 구성
         modified_data = {
             "id": new_project.id,
-            "model": model.model_id,  # 여기는 정수형 ID
+            "model":model.model_id,  # 여기는 정수형 ID
             "dataset": dataset.dataset_id,  # 여기는 정수형 ID
             "hyperparameters": data['hyperparameters'],
-            "nodes": node_instances  # 노드 인스턴스 정보
+            "nodes": node_instances,  # 노드 인스턴스 정보
+            "status": node_statuses
         }
+        print(modified_data)
         current_app.logger.info(f"수정된 파일: {modified_data}")
 
-        other_backend_url = "http://163.180.117.160:8000/training"
+        other_backend_url = "http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:12345/training"
         response = requests.post(other_backend_url, json=modified_data)
 
         if response.status_code == 200:
@@ -233,7 +246,7 @@ def stop_training():
 
     # 다른 백엔드로 학습 중단 요청 보내기
     try:
-        response = requests.delete(f'http://163.180.117.160:8000/training/{project_id}')
+        response = requests.delete(f'http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:12345/training/{project_id}')
         response_data = response.json()
 
         # Check the 'success' field in the response data
@@ -288,7 +301,7 @@ def process_node_monitoring_data():
                 "realTime": realTime,
                 "historical": historical
             }
-        print(processed_data)
+        # print(processed_data)
         return jsonify(processed_data)
 
     except requests.HTTPError as http_err:
@@ -297,3 +310,25 @@ def process_node_monitoring_data():
     except Exception as err:
         # 기타 예외 처리
         return jsonify({"error": "An error occurred", "details": str(err)}), 500
+    
+    
+@main.route('/api/projects/<int:project_id>', methods=['GET'])
+@jwt_required()
+def get_project_info(project_id):
+    # 토큰과 사용자 정보가 유효한지 검증 (이미 jwt_required()에서 처리됨)
+    try:
+        # 다른 백엔드에서 프로젝트 정보를 요청
+        url = f"http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:12345/status/{project_id}"
+        response = requests.get(url)
+
+        # 요청이 성공적으로 처리되었는지 확인
+        if response.status_code == 200:
+            # 다른 백엔드에서 받은 데이터를 그대로 클라이언트에 전달
+            return jsonify(response.json()), 200
+        else:
+            # 다른 백엔드에서 에러 응답을 받은 경우
+            return jsonify({"error": "Failed to retrieve project data from external backend"}), response.status_code
+    except requests.exceptions.RequestException as e:
+        # HTTP 요청 중 오류가 발생한 경우
+        current_app.logger.error(f"Error fetching project {project_id} from external backend: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching project data"}), 500
