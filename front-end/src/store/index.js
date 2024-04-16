@@ -243,7 +243,7 @@ export default createStore({
       commit("setSelectedProjectNodeNames", nodeNames);
     },
     fetchProjectInfoById({ commit, state }, projectId) {
-      if (state.authToken && state.userEmail) { // Ensure userEmail check is also consistent with your authentication logic
+      if (state.authToken && state.userEmail) { // 이 코드는 반환 값이 정확도와 손실도가 단일 값으로 올 떄 작성한 코드여서, 지금은 데이터 처리가 안됨. 
         axios.get(`http://163.180.117.23:5000/api/projects/${projectId}`, {
           headers: {
             Authorization: `Bearer ${state.authToken}`
