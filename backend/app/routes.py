@@ -54,9 +54,7 @@ def signin():
 def submit_training():                                           # 프론트에서 모델 학습 요청 받아서 지승이 백엔드로 전송
     current_user_email = get_jwt_identity()
     current_user = User.query.filter_by(email=current_user_email).first()
-    
-    current_app.logger.info(f"유저 ID: {current_user}")
-    
+        
     if not current_user:
         return jsonify({"message": "사용자를 찾을 수 없습니다."}), 404
     
@@ -66,7 +64,6 @@ def submit_training():                                           # 프론트에�
     model = Model.query.get(data['model'])
     dataset = Dataset.query.get(data['dataset'])
     
-    current_app.logger.info(f"Model: {model}, Dataset: {dataset}")
     
     if not model or not dataset:
         return jsonify({"message": "모델 또는 데이터셋을 찾을 수 없습니다."}), 404
@@ -82,7 +79,6 @@ def submit_training():                                           # 프론트에�
         db.session.add(new_project)
         db.session.commit()
         
-        current_app.logger.info(f"프로젝트 생성 성공: Project ID {new_project.id}")
         
         node_instances = []
         for node_name in data['nodes']:
@@ -112,8 +108,7 @@ def submit_training():                                           # 프론트에�
             "nodes": node_instances,  # 노드 인스턴스 정보
             "status": node_statuses
         }
-        print(modified_data)
-        current_app.logger.info(f"수정된 파일: {modified_data}")
+
 
         other_backend_url = "http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:12345/training"
         response = requests.post(other_backend_url, json=modified_data)
@@ -134,7 +129,7 @@ def submit_training():                                           # 프론트에�
             return jsonify({"message": "다른 백엔드로 프로젝트 정보 전송에 실패하였습니다."}), response.status_code
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Error during project creation: {e}")
+
         return jsonify({"message": "프로젝트 생성 중 오류가 발생했습니다."}), 500
     
 
@@ -255,14 +250,11 @@ def stop_training():
             project.status = '중단됨'
             # 프로젝트에 연결된 노드들의 상태를 대기(0)로 변경
             node_names = json.loads(project.project_nodes)
-            current_app.logger.info(f"Processing stop training for nodes: {node_names}")
+
             for node_name in node_names:
                 node = Node.query.filter_by(name=node_name).first()
                 if node:
                     node.status = 0  # 대기 상태로 설정
-                    current_app.logger.info(f"Node {node_name} status updated to waiting")
-                else:
-                    current_app.logger.warning(f"No node found with the name {node_name}")    
             db.session.commit()
             return jsonify({"success": True, "message": "Training stopped successfully"}), 200
         else:
@@ -270,7 +262,7 @@ def stop_training():
             return jsonify({"error": error_message}), response.status_code
 
     except Exception as e:
-        current_app.logger.error(f"Error during stopping training: {e}")
+
         return jsonify({"error": str(e)}), 500
     
 
@@ -301,6 +293,8 @@ def get_project_info(project_id):
         project = Project.query.filter_by(id=project_id).first()
         if not project:
             return jsonify({"error": "Project not found"}), 404
+        
+        project_node_names = json.loads(project.project_nodes) if project.project_nodes else []
         
         # B-백엔드에서 프로젝트 상태 정보 가져오기
         response = requests.get(f'http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:12345/status/{project_id}')
@@ -342,14 +336,14 @@ def get_project_info(project_id):
         return jsonify(project_data), 200
 
     except requests.exceptions.HTTPError as e:
-        current_app.logger.error(f"HTTP error fetching data: {str(e)}")
+
         return jsonify({"error": "HTTP error occurred while fetching data", "details": str(e)}), 503
     except requests.exceptions.RequestException as e:
-        current_app.logger.error(f"Request error fetching data: {str(e)}")
+
         return jsonify({"error": "Error occurred while making external requests", "details": str(e)}), 502
     except KeyError as e:
-        current_app.logger.error(f"Key error in processing data: {str(e)}")
+
         return jsonify({"error": "Key error in processing data", "details": str(e)}), 500
     except Exception as e:
-        current_app.logger.error(f"Unhandled exception: {str(e)}")
+
         return jsonify({"error": "An internal server error occurred", "details": str(e)}), 500
