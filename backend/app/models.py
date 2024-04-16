@@ -1,5 +1,6 @@
 from .extensions import db
 from datetime import datetime
+import pytz
 
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
@@ -39,7 +40,14 @@ class Project(db.Model):
     model_id = db.Column(db.Integer, db.ForeignKey('model.model_id'), nullable=False)
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.dataset_id'), nullable=False)
     status = db.Column(db.String(128), nullable=False)  # "학습 중", "중단 됨", "학습 완료"
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=lambda: Project.current_kst())
     project_nodes = db.Column(db.String, nullable=True)  # 노드 이름의 JSON 리스트를 저장하는 문자열 컬럼
     hyperparameters = db.Column(db.JSON, nullable=True)  # 하이퍼파라미터를 JSON 형식으로 저장
     result = db.Column(db.Text, nullable=True)
+    
+    
+    @staticmethod
+    def current_kst():
+        utc = pytz.utc
+        kst = pytz.timezone('Asia/Seoul')
+        return datetime.now(utc).astimezone(kst)
