@@ -297,32 +297,59 @@ def process_node_monitoring_data():
 @jwt_required()
 def get_project_info(project_id):
     try:
-        url = f"http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:12345/status/{project_id}"
-        response = requests.get(url)
-        if response.status_code == 200:
-            data = response.json()
-            print(data)
-            
-            # Check if the training has completed using 'current_state'
-            if data.get('current_state') == 2:  # Check for state indicating training completion
-                project = Project.query.filter_by(id=project_id).first()
-                if project:
-                    project.status = "학습 완료"
-                    db.session.commit()
+        # 프로젝트 정보 조회
+        project = Project.query.filter_by(id=project_id).first()
+        if not project:
+            return jsonify({"error": "Project not found"}), 404
+        
+        # B-백엔드에서 프로젝트 상태 정보 가져오기
+        response = requests.get(f'http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:12345/status/{project_id}')
+        if response.status_code != 200:
+            return jsonify({"error": "Failed to retrieve project data from external backend", "status_code": response.status_code}), response.status_code
+        project_data = response.json()
+        
+        # 프로젝트 상태 갱신 및 노드 상태 갱신
+        if project_data.get('current_state') == 2:
+            project.status = "학습 완료"
+            project_node_names = json.loads(project.project_nodes)
+            for node_name in project_node_names:
+                node = Node.query.filter_by(name=node_name).first()
+                if node:
+                    node.status = 0
+            db.session.commit()
 
-                    # Update statuses of associated nodes
-                    node_names = json.loads(project.project_nodes)
-                    for node_name in node_names:
-                        node = Node.query.filter_by(name=node_name).first()
-                        if node:
-                            node.status = 0
-                    db.session.commit()
+        # C-백엔드에서 노드 모니터링 데이터 가져오기
+        monitoring_response = requests.get('http://13.124.158.135:20001/api/v1/metrics')
+        monitoring_response.raise_for_status()
+        monitoring_data = monitoring_response.json()
 
-            print(data)
-            return jsonify(data), 200
-        else:
-            return jsonify({"error": "Failed to retrieve project data from external backend"}), response.status_code
+        # 노드별 CPU 및 GPU 사용률 추출 및 추가
+        node_cpu_utilization = {}
+        node_gpu_utilization = {}
+        for node_name in project_node_names:
+            node_info = monitoring_data.get(node_name)
+            if node_info:
+                metrics = node_info['metrics']
+                cpuUtilization = float(metrics[1])
+                node_cpu_utilization[node_name] = cpuUtilization
+                gpu_utilization = int(metrics[7]) if metrics[7] is not None else 0
+                node_gpu_utilization[node_name] = gpu_utilization
+        
+        project_data['node_cpu_utilization'] = node_cpu_utilization
+        project_data['node_gpu_utilization'] = node_gpu_utilization
 
+        print(project_data)
+        return jsonify(project_data), 200
+
+    except requests.exceptions.HTTPError as e:
+        current_app.logger.error(f"HTTP error fetching data: {str(e)}")
+        return jsonify({"error": "HTTP error occurred while fetching data", "details": str(e)}), 503
     except requests.exceptions.RequestException as e:
-        current_app.logger.error(f"Error fetching project {project_id} from external backend: {str(e)}")
-        return jsonify({"error": "An error occurred while fetching project data"}), 500
+        current_app.logger.error(f"Request error fetching data: {str(e)}")
+        return jsonify({"error": "Error occurred while making external requests", "details": str(e)}), 502
+    except KeyError as e:
+        current_app.logger.error(f"Key error in processing data: {str(e)}")
+        return jsonify({"error": "Key error in processing data", "details": str(e)}), 500
+    except Exception as e:
+        current_app.logger.error(f"Unhandled exception: {str(e)}")
+        return jsonify({"error": "An internal server error occurred", "details": str(e)}), 500
