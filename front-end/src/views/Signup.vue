@@ -31,7 +31,7 @@ const submitForm = async () => {
 
   try {
     const response = await axios.post(
-      "http://localhost:5000/api/signup",
+      "http://163.180.117.23:5000/api/signup",
       formData,
     );
     console.log(response.data);

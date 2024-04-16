@@ -51,7 +51,7 @@ def signin():
 
 @main.route('/api/create-project', methods=['POST'])
 @jwt_required()
-def submit_training():
+def submit_training():                                           # 프론트에서 모델 학습 요청 받아서 지승이 백엔드로 전송
     current_user_email = get_jwt_identity()
     current_user = User.query.filter_by(email=current_user_email).first()
     
@@ -71,13 +71,13 @@ def submit_training():
     if not model or not dataset:
         return jsonify({"message": "모델 또는 데이터셋을 찾을 수 없습니다."}), 404
 
-
     try:
         new_project = Project(
             user_id=current_user.user_id,
             model_id=model.model_id,
             dataset_id=dataset.dataset_id,
-            status="생성 요청"
+            status="생성 요청",
+            hyperparameters=data['hyperparameters']  # 하이퍼파라미터 추가
         )
         db.session.add(new_project)
         db.session.commit()
@@ -194,7 +194,7 @@ def reset_database():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
     
-@main.route('/api/data/projects', methods=['POST'])
+@main.route('/api/data/projects', methods=['POST']) # 대시보드 페이지에서 학습 정보 띄울 때 가져가는 코드 
 @jwt_required()
 def fetch_projects():
     # 현재 로그인한 사용자의 이메일을 JWT 토큰에서 가져옵니다.
@@ -273,12 +273,13 @@ def stop_training():
         current_app.logger.error(f"Error during stopping training: {e}")
         return jsonify({"error": str(e)}), 500
     
-@main.route('/api/data/nodemonitoring', methods=['GET'])
+
+@main.route('/api/data/nodemonitoring', methods=['GET'])            # 현재 노드 이름이 {클러스트} + {노드 이름} 상태로 날라와서 그에 맞춰서 코드 작성됨, 추후 민철이가 보내는 형식 수정하면 다시 재 수정 필요함.
 def process_node_monitoring_data():
     try:
         # 다른 백엔드에서 데이터를 가져옵니다.
         response = requests.get('http://13.124.158.135:20001/api/v1/metrics')
-        response.raise_for_status()
+        response.raise_for_status()  # 상태 코드가 200이 아니면 HTTPError 예외를 발생시킵니다.
         data = response.json()
 
         # 가공할 데이터를 준비합니다.
@@ -288,52 +289,50 @@ def process_node_monitoring_data():
             # 필요한 메트릭을 추출합니다.
             metrics = node_info['metrics']
             realTime = {
-                "memoryFree": int(float(metrics[3]) / (1024 ** 2)),
-                "diskFree": int(float(metrics[4]) / (1024 ** 2))
+                "memoryFree": int(float(metrics[3]) / (1024 ** 2)),  # 메모리 사용 가능량 (MB 단위로 변환)
+                "diskFree": int(float(metrics[4]) / (1024 ** 2))    # 디스크 사용 가능량 (MB 단위로 변환)
             }
             historical = {
-                "cpuUtilization": float(metrics[1]),
-                "gpuUtilization": metrics[7] if metrics[7] is not None else 0,
-                "gpuTemperature": metrics[5] if metrics[5] is not None else 0,
-                "gpuPowerUsage": metrics[6] if metrics[6] is not None else 0,
+                "cpuUtilization": float(metrics[1]),  # CPU 사용률
+                "gpuUtilization": metrics[7] if metrics[7] is not None else 0,  # GPU 사용률 (없으면 0)
+                "gpuTemperature": metrics[5] if metrics[5] is not None else 0,  # GPU 온도 (없으면 0)
+                "gpuPowerUsage": metrics[6] if metrics[6] is not None else 0,   # GPU 전력 사용량 (없으면 0)
             }
+            
+            # 가공된 데이터를 저장합니다.
             processed_data[node_name] = {
                 "realTime": realTime,
                 "historical": historical
             }
-        # print(processed_data)
+        # 가공된 데이터를 반환합니다.
         return jsonify(processed_data)
 
     except requests.HTTPError as http_err:
-        # 외부 요청 중 발생한 HTTP 에러 처리
+        # 외부 요청 중 발생한 HTTP 에러를 처리합니다.
         return jsonify({"error": "External backend error", "details": str(http_err)}), 500
     except Exception as err:
         # 기타 예외 처리
         return jsonify({"error": "An error occurred", "details": str(err)}), 500
     
-    
-@main.route('/api/projects/<int:project_id>', methods=['GET']) # 백엔드로 정보 요청, 반환 받은 데이터가 학습 완료 상태면 db 데이터들 상태 전환. 
+@main.route('/api/projects/<int:project_id>', methods=['GET'])         # 학습 중인 프로젝트 상태 정보 요청 후 프런트로 반환 
 @jwt_required()
 def get_project_info(project_id):
-    # 토큰과 사용자 정보가 유효한지 검증 (이미 jwt_required()에서 처리됨)
     try:
-        # 다른 백엔드에서 프로젝트 정보를 요청
         url = f"http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:12345/status/{project_id}"
         response = requests.get(url)
         if response.status_code == 200:
-            
-            # 데이터 제거
             data = response.json()
-            # Remove unnecessary data fields
+            print(data)
+            
+            # Remove 불필요 정보 data fields
             data.pop('success', None)
             data.pop('id', None)
             data.pop('code', None)
 
-            # Check if the training has completed
-            if data.get('message') == "completed":   # 지금은 상태 메세지로 판단을 하는데, 실제로는 지승이 백엔드에서 계산이 안되서 계속 학습중 이라고 날라옴. 나중에 변경해야함.
+            # Check if the training has completed using 'current_state'
+            if data.get('current_state') == 2:  # Check for state indicating training completion
                 project = Project.query.filter_by(id=project_id).first()
                 if project:
-                    # Update project status in the database
                     project.status = "학습 완료"
                     db.session.commit()
 
@@ -343,14 +342,13 @@ def get_project_info(project_id):
                         node = Node.query.filter_by(name=node_name).first()
                         if node:
                             node.status = 0
-                            db.session.commit()
+                    db.session.commit()
+
             print(data)
-            # Send the processed data to the frontend
             return jsonify(data), 200
         else:
             return jsonify({"error": "Failed to retrieve project data from external backend"}), response.status_code
-    # HTTP 요청 중 오류가 발생한 경우
+
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f"Error fetching project {project_id} from external backend: {str(e)}")
         return jsonify({"error": "An error occurred while fetching project data"}), 500
-            

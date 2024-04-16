@@ -128,21 +128,26 @@ const sortedSelectedNodes = computed(() => {
 .node-selector-container {
   display: flex;
   flex-direction: column;
-  border: 1px solid #ddd;
+  border: 1px solid #e0e0e0;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .node-header {
-  padding: 10px 20px;
-  background-color: #f5f5f5;
+  padding: 15px 20px;
+  background-color: #f8f8f8;
   text-align: left;
-  font-size: 1.25rem;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
   border-bottom: 1px solid #ddd;
 }
 
 .node-content {
   display: flex;
+  flex-wrap: wrap; /* Enables the content to wrap onto the next line as needed */
 }
 
 .node-list,
@@ -167,12 +172,14 @@ const sortedSelectedNodes = computed(() => {
   cursor: pointer;
   border-bottom: 1px solid #eee;
   transition: background-color 0.3s;
+  font-size: 16px;
+  color: #333;
 }
 
 .node-list li:hover,
 .node-list li.selected,
 .selected-nodes li:hover {
-  background-color: #b1f397;
+  background-color: #e3f2fd;
 }
 
 /* Remove border from the last element of the main content */
@@ -180,7 +187,6 @@ const sortedSelectedNodes = computed(() => {
   border-right: none;
 }
 
-/* Optional: Add some responsive styling */
 @media (max-width: 768px) {
   .node-content {
     flex-direction: column;
@@ -198,4 +204,5 @@ const sortedSelectedNodes = computed(() => {
     border-bottom: none;
   }
 }
+
 </style>
