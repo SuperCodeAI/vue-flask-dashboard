@@ -52,6 +52,8 @@ const darkMode = computed(() => store.state.darkMode);
 </template>
 
 <style scoped>
+
+
 .top-0
 {
   border: none; /* 테두리 없애기 */
@@ -63,7 +65,7 @@ const darkMode = computed(() => store.state.darkMode);
 {
   border: none; /* 테두리 없애기 */
   border-radius: 0; /* 테두리 모서리를 직사각으로 만듦 */
-  margin: 0; /* 여백 없애기 */
+  margin-left: 20px !important; /* 왼쪽 여백을 0으로 설정 */
 }
 
 .my-3 {
@@ -88,7 +90,7 @@ const darkMode = computed(() => store.state.darkMode);
 /* Span 태그 스타일 */
 span.font-weight-bold {
   color: #344675; /* 폰트 색상 */
-  font-size: 18px; /* 폰트 크기 */
+  font-size: 23px; /* 폰트 크기 */
   font-weight: bold; /* 폰트 두께 */
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* 텍스트에 그림자 추가 */
   letter-spacing: 0.05em; /* 문자 간격 조정 */
@@ -103,17 +105,18 @@ span.font-weight-bold {
   padding: 0.5rem 0; /* 상하 패딩 */
 }
 
-/* Navbar-brand 이미지 스타일 */
 .navbar-brand-img {
-  max-height: 50px; /* 최대 높이 제한 */
-  width: 100px; /* 너비 자동 조절 */
-  height: 200px; /* 높이 자동 조절 */
+  width: 160px !important; /* 너비를 150px로 설정 */
+  height: 150px !important; /* 높이를 150px로 설정 */
+  position: absolute; /* 절대 위치 설정 */
+  top: 40px; /* 상단에서 20px 떨어진 위치 */
+  left: 43px; /* 좌측에서 20px 떨어진 위치 */
+  z-index: 10; /* 다른 요소들 위에 오도록 z-index 설정 */
   transition: transform 0.3s ease; /* 마우스 오버 시 애니메이션 */
-  margin-left: 50px; /* 왼쪽 마진 */
 }
 
 .navbar-brand-img:hover {
-  transform: scale(1.1); /* 마우스 오버 시 이미지 확대 */
+  transform: scale(1.2); /* 마우스 오버 시 이미지 확대 */
 }
 
 /* min-height-300 position-absolute w-100 스타일 */

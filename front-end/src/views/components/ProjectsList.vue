@@ -10,7 +10,7 @@
             @click="selectProject(project)"
             :class="{ 'is-selected': project.id === selectedProject.id }"
           >
-            {{ project.model_name }}
+            {{ index + 1 }}. {{ project.model_name }} 
           </li>
         </ul>
       </div>
@@ -40,6 +40,9 @@
 import { computed, ref, watch } from "vue";
 import { useStore } from "vuex";
 import axios from "axios";
+import { onMounted, onUnmounted } from 'vue';
+
+let intervalId;
 
 const store = useStore();
 // Log the initial state of projects from the store
@@ -59,7 +62,7 @@ const projects = computed(() => {
 
 const lastFiveProjects = computed(() => {
   const totalProjects = projects.value.length;
-  return projects.value.slice(Math.max(totalProjects - 5, 0));
+  return projects.value.slice(Math.max(totalProjects - 5, 0)).reverse();
 });
 
 
@@ -80,18 +83,46 @@ watch(
 watch(selectedProject, (newProject) => {
   console.log("선택된 프로젝트 갱신:", newProject);
 });
-
 const selectProject = (project) => {
-  console.log("Project selected:", project); // Log when a project is selected
+  console.log("Project selected:", project);
   selectedProject.value = project;
   if (project.status !== "중단됨") {
-    
     store.commit('setSelectedProjectId', project.id)
-    // Only update if the project is not "stopped"
     const nodeNames = JSON.parse(project.project_nodes);
     store.dispatch("updateSelectedProjectNodeNames", nodeNames);
   }
 };
+
+
+let isFirst = false;
+
+onMounted(() => {
+
+  intervalId = setInterval(executePeriodically, 1000);
+
+ 
+});
+
+onUnmounted(() => {
+  clearInterval(intervalId);
+});
+
+const executePeriodically = () => {
+
+  if(isFirst==false){
+    
+     console.log("Mounted ProjectsList component");
+  if (lastFiveProjects.value.length > 0 && isFirst == false) {
+    console.log("Selecting the last project from the list");
+    selectProject(lastFiveProjects.value[0]);
+      isFirst = true;
+      
+  }
+    return;
+  }
+  // 여기에 매초 실행하고 싶은 로직을 추가하세요.
+};
+
 
 const parseNodes = (nodesJson) => {
   try {
@@ -110,7 +141,7 @@ const stopTraining = async () => {
   }
   try {
     const response = await axios.post(
-      "http://163.180.117.23:5000/api/stop-training",
+      "http://l163.180.117.23:5000/api/stop-training",
       { projectId: selectedProject.value.id },
       { headers: { Authorization: `Bearer ${store.state.authToken}` } },
     );
@@ -231,16 +262,16 @@ body {
   position: absolute; /* 절대 위치 지정 */
   top: 10px; /* 상단에서 10px 떨어진 위치 */
   right: 10px; /* 우측에서 10px 떨어진 위치 */
-  height: 50px;
-  width: 150px;
+  height: 45px;
+  width: 135px;
   border-radius: 25px;
   background-color: #778899;
   color: #fff;
   font-size: 18px;
   cursor: pointer;
   transition: background-color 0.3s;
-  margin-top: 125px; /* Adds some space at the bottom */
-  margin-right: 5px; /* Adds some space at the right */
+  margin-top: 195px; /* Adds some space at the bottom */
+  margin-right: -5px; /* Adds some space at the right */
 }
 
 .stop-training-button:hover {

@@ -4,6 +4,7 @@ import Tables from "../views/Tables.vue";
 import Signup from "../views/Signup.vue";
 import Signin from "../views/Signin.vue";
 import store from "../store/index.js";
+import Monitoring from "../views/components/Monitoring.vue";
 
 const routes = [
   {
@@ -35,6 +36,11 @@ const routes = [
     name: "Signup",
     component: Signup,
   },
+  {
+    path:"/monitoring",
+    name:"Monitoring",
+    component: Monitoring,
+  }
 ];
 
 const router = createRouter({

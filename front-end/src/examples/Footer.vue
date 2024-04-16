@@ -15,10 +15,10 @@ const store = useStore();
             {{ new Date().getFullYear() }}, made with
             <i class="fa fa-heart"></i> by
             <a
-              href="https://www.creative-tim.com"
+              href="http://ccrc.re.kr/"
               class="font-weight-bold"
               target="_blank"
-              >Creative Tim</a
+              >CCRC</a
             >
             for a better web.
           </div>
@@ -32,7 +32,7 @@ const store = useStore();
                 href="https://www.creative-tim.com"
                 class="nav-link text-muted"
                 target="_blank"
-                >Creative Tim</a
+                ></a
               >
             </li>
             <li class="nav-item">
@@ -40,7 +40,7 @@ const store = useStore();
                 href="https://www.creative-tim.com/presentation"
                 class="nav-link text-muted"
                 target="_blank"
-                >About Us</a
+                ></a
               >
             </li>
             <li class="nav-item">
@@ -48,7 +48,7 @@ const store = useStore();
                 href="https://www.creative-tim.com/blog"
                 class="nav-link text-muted"
                 target="_blank"
-                >Blog</a
+                ></a
               >
             </li>
             <li class="nav-item">
@@ -56,7 +56,7 @@ const store = useStore();
                 href="https://www.creative-tim.com/license"
                 class="nav-link pe-0 text-muted"
                 target="_blank"
-                >License</a
+                ></a
               >
             </li>
           </ul>
