@@ -47,7 +47,7 @@ def signin():
         # 실패한 경우
         return jsonify({'message': 'Invalid credentials.'}), 401
 
-
+     
 
 @main.route('/api/create-project', methods=['POST'])
 @jwt_required()
@@ -312,7 +312,7 @@ def process_node_monitoring_data():
         return jsonify({"error": "An error occurred", "details": str(err)}), 500
     
     
-@main.route('/api/projects/<int:project_id>', methods=['GET'])
+@main.route('/api/projects/<int:project_id>', methods=['GET']) # 백엔드로 정보 요청, 반환 받은 데이터가 학습 완료 상태면 db 데이터들 상태 전환. 
 @jwt_required()
 def get_project_info(project_id):
     # 토큰과 사용자 정보가 유효한지 검증 (이미 jwt_required()에서 처리됨)
@@ -320,15 +320,37 @@ def get_project_info(project_id):
         # 다른 백엔드에서 프로젝트 정보를 요청
         url = f"http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:12345/status/{project_id}"
         response = requests.get(url)
-
-        # 요청이 성공적으로 처리되었는지 확인
         if response.status_code == 200:
-            # 다른 백엔드에서 받은 데이터를 그대로 클라이언트에 전달
-            return jsonify(response.json()), 200
+            
+            # 데이터 제거
+            data = response.json()
+            # Remove unnecessary data fields
+            data.pop('success', None)
+            data.pop('id', None)
+            data.pop('code', None)
+
+            # Check if the training has completed
+            if data.get('message') == "completed":   # 지금은 상태 메세지로 판단을 하는데, 실제로는 지승이 백엔드에서 계산이 안되서 계속 학습중 이라고 날라옴. 나중에 변경해야함.
+                project = Project.query.filter_by(id=project_id).first()
+                if project:
+                    # Update project status in the database
+                    project.status = "학습 완료"
+                    db.session.commit()
+
+                    # Update statuses of associated nodes
+                    node_names = json.loads(project.project_nodes)
+                    for node_name in node_names:
+                        node = Node.query.filter_by(name=node_name).first()
+                        if node:
+                            node.status = 0
+                            db.session.commit()
+            print(data)
+            # Send the processed data to the frontend
+            return jsonify(data), 200
         else:
-            # 다른 백엔드에서 에러 응답을 받은 경우
             return jsonify({"error": "Failed to retrieve project data from external backend"}), response.status_code
+    # HTTP 요청 중 오류가 발생한 경우
     except requests.exceptions.RequestException as e:
-        # HTTP 요청 중 오류가 발생한 경우
         current_app.logger.error(f"Error fetching project {project_id} from external backend: {str(e)}")
         return jsonify({"error": "An error occurred while fetching project data"}), 500
+            
