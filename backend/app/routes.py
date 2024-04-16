@@ -282,30 +282,8 @@ def process_node_monitoring_data():
         response.raise_for_status()  # 상태 코드가 200이 아니면 HTTPError 예외를 발생시킵니다.
         data = response.json()
 
-        # 가공할 데이터를 준비합니다.
-        processed_data = {}
-
-        for node_name, node_info in data.items():
-            # 필요한 메트릭을 추출합니다.
-            metrics = node_info['metrics']
-            realTime = {
-                "memoryFree": int(float(metrics[3]) / (1024 ** 2)),  # 메모리 사용 가능량 (MB 단위로 변환)
-                "diskFree": int(float(metrics[4]) / (1024 ** 2))    # 디스크 사용 가능량 (MB 단위로 변환)
-            }
-            historical = {
-                "cpuUtilization": float(metrics[1]),  # CPU 사용률
-                "gpuUtilization": metrics[7] if metrics[7] is not None else 0,  # GPU 사용률 (없으면 0)
-                "gpuTemperature": metrics[5] if metrics[5] is not None else 0,  # GPU 온도 (없으면 0)
-                "gpuPowerUsage": metrics[6] if metrics[6] is not None else 0,   # GPU 전력 사용량 (없으면 0)
-            }
-            
-            # 가공된 데이터를 저장합니다.
-            processed_data[node_name] = {
-                "realTime": realTime,
-                "historical": historical
-            }
-        # 가공된 데이터를 반환합니다.
-        return jsonify(processed_data)
+        # 전달받은 데이터를 그대로 반환합니다.
+        return jsonify(data)
 
     except requests.HTTPError as http_err:
         # 외부 요청 중 발생한 HTTP 에러를 처리합니다.
@@ -313,6 +291,7 @@ def process_node_monitoring_data():
     except Exception as err:
         # 기타 예외 처리
         return jsonify({"error": "An error occurred", "details": str(err)}), 500
+    
     
 @main.route('/api/projects/<int:project_id>', methods=['GET'])         # 학습 중인 프로젝트 상태 정보 요청 후 프런트로 반환 
 @jwt_required()
@@ -324,11 +303,6 @@ def get_project_info(project_id):
             data = response.json()
             print(data)
             
-            # Remove 불필요 정보 data fields
-            data.pop('success', None)
-            data.pop('id', None)
-            data.pop('code', None)
-
             # Check if the training has completed using 'current_state'
             if data.get('current_state') == 2:  # Check for state indicating training completion
                 project = Project.query.filter_by(id=project_id).first()
