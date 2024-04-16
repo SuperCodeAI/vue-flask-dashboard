@@ -121,16 +121,12 @@ const datasetSelected = (datasetId) => {
   projectData.dataset = { dataset_id: datasetId };
 };
 
-const stringifyData = (value) => {
-  return JSON.stringify(value, null, 2); // Pretty print JSON
-};
-
 const lastSubmittedData = ref(null); // 백엔드로 마지막으로 전송된 데이터를 저장
 </script>
 
 <template>
   <div class="container-fluid">
-    <div class="py-5 container-fluid">
+    <div class="py-5-container-fluid">
       <div class="row">
         <div class="col-12">
           <ModelselectBox @update:modelValue="modelIdSelected" />
@@ -173,33 +169,31 @@ const lastSubmittedData = ref(null); // 백엔드로 마지막으로 전송된 �
         {{ isCreatingProject ? "생성 중" : "프로젝트 생성" }}
       </button>
     </div>
-    <div class="last-submitted-data-container">
-      <h3>Last Submitted Data</h3>
-      <pre>{{ stringifyData(lastSubmittedData) }}</pre>
-    </div>
+    
   </div>
 </template>
 
 <style scoped>
-/* ... other styles ... */
 
-/* Add padding to the bottom of the container to push the footer down */
-.container-fluid {
-  padding-bottom: 50px; /* Adjust the value as needed to create space above the footer */
+.py-5-container-fluid
+{
+  padding : 10px;
+  height: 270px;
 }
 
-/* Adjust the styling of the button and its container */
+.container-fluid {
+  padding: 10px; /* 모든 패딩 제거 */
+}
+
 .create-project-button-container {
-  text-align: right; /* Aligns the button to the right */
-  padding-top: 20px; /* Adds space above the button */
-  padding-bottom: 20px; /* Adds space below the button, above the footer */
+  text-align: right; /* 버튼을 오른쪽 정렬 */
+  padding: 20px 0; /* 상단과 하단 여백 */
 }
 
 .create-project-button {
-  padding: 10px 30px; /* Larger padding for a larger button */
-  margin-top: 20px; /* Adds space above the button */
-  margin-bottom: 40px; /* Adds space below the button */
-  /* Other styling remains unchanged */
+  padding: 10px 30px; /* 버튼 내부 패딩 */
+  margin-top: 20px; /* 버튼 위쪽 여백 */
+  margin-bottom: 0; /* 버튼 아래쪽 여백 제거 */
 }
 
 .last-submitted-data-container {
@@ -210,18 +204,18 @@ const lastSubmittedData = ref(null); // 백엔드로 마지막으로 전송된 �
 }
 
 button {
-  border-radius: 5px; /* Adjust the pixel value to control the roundness */
-  background-color: #90ee90; /* This is a light green color */
-  border: none; /* Removes the default border */
-  padding: 10px 20px; /* Adds some padding inside the button */
-  color: rgb(0, 0, 0); /* Changes the text color */
-  font-size: 16px; /* Adjust the font size as needed */
-  cursor: pointer; /* Changes the cursor to a pointer when hovering over the button */
-  transition: background-color 0.3s; /* Smooth transition for background color */
+  border-radius: 5px;
+  background-color: #90ee90;
+  border: none;
+  padding: 10px 20px;
+  color: rgb(0, 0, 0);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 button:hover {
-  background-color: #76c893; /* Slightly darker green color for the hover state */
+  background-color: #76c893;
 }
-/* ... */
 </style>
+
