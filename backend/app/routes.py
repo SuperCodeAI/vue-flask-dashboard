@@ -40,7 +40,7 @@ def signin():
     # 사용자가 존재하고 비밀번호가 맞는 경우
     if user and check_password_hash(user.password_hash, password):
         # 토큰 생성
-        expires = timedelta(hours=3)  # 만료 시간 설정 3시간 
+        expires = timedelta(hours=36)  # 만료 시간 설정 3시간 
         access_token = create_access_token(identity=email, expires_delta=expires)
         return jsonify(access_token=access_token, email=email), 200
     else:
