@@ -1,9 +1,9 @@
 <template>
   <div class="hyperparameter-settings">
-    <h2>Hyperparameter Settings</h2>
+    <h2>하이퍼 파라미터 설정</h2>
     <div class="hyperparameters">
       <div class="form-group">
-        <label for="learningRate">Learning Rate</label>
+        <label for="learningRate">학습률</label>
         <input
           type="text"
           id="learningRate"
@@ -12,7 +12,7 @@
         />
       </div>
       <div class="form-group">
-        <label for="batchSize">Batch Size</label>
+        <label for="batchSize">모델 학습 배치 사이즈</label>
         <input
           type="text"
           id="batchSize"
@@ -24,7 +24,7 @@
       </div>
 
       <div class="form-group">
-        <label for="epochs">Epochs</label>
+        <label for="epochs">모델 학습 횟수</label>
         <input
           type="text"
           id="epochs"
@@ -36,14 +36,14 @@
       </div>
 
       <div class="form-group">
-        <label for="optimizer">Optimizer</label>
+        <label for="optimizer">최적화 함수</label>
         <select id="optimizer" v-model.number="localHyperparameters.optimizer">
           <option value="1">Adam</option>
           <option value="2">SGD</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="lossFunction">Loss Function</label>
+        <label for="lossFunction">손실 함수</label>
         <select
           id="lossFunction"
           v-model.number="localHyperparameters.lossFunction"
@@ -113,8 +113,22 @@ const emitUpdate = () => {
 </script>
 
 <style scoped>
+
+
+
 .hyperparameter-settings {
   max-width: 100%;
+  margin-top : 15px;
+  margin-left : 8px;
+}
+.hyperparameter-settings h2 {
+  font-size: 34px; /* 글꼴 크기를 설정합니다. */
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size : 20px;
 }
 
 .hyperparameters {

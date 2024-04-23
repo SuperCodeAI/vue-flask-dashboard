@@ -24,7 +24,7 @@ const getRoute = () => {
         <sidenav-item
           to="/dashboard-default"
           :class="getRoute() === 'dashboard-default' ? 'active' : ''"
-          :navText="isRTL ? 'لوحة القيادة' : 'Dashboard'"
+          :navText="isRTL ? 'لوحة القيادة' : '대시보드'"
         >
           <template v-slot:icon>
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
@@ -36,7 +36,7 @@ const getRoute = () => {
         <sidenav-item
           to="/tables"
           :class="getRoute() === 'tables' ? 'active' : ''"
-          :navText="isRTL ? 'الجداول' : 'Tables'"
+          :navText="isRTL ? 'الجداول' : '학습 생성'"
         >
           <template v-slot:icon>
             <i
@@ -45,6 +45,31 @@ const getRoute = () => {
           </template>
         </sidenav-item>
       </li>
+
+       <li class="nav-item">
+        <sidenav-item
+          to="/monitoring"
+          :class="getRoute()"
+          :navText="isRTL ? 'الجداول' : '모니터링 시스템'"
+        >
+           <template v-slot:icon>
+      <!-- 아이콘 이미지를 추가합니다. -->
+      <img src="@/assets/img/monitoring.png" alt="Monitoring Icon" class="icon-img">
+    </template>
+        </sidenav-item>
+      </li>
+
+
     </ul>
   </div>
 </template>
+
+<style scoped>
+.navbar-nav {
+  padding: 0;
+}
+.nav-item {
+  font-size: 1.875rem;
+  padding: 0;
+}
+</style>

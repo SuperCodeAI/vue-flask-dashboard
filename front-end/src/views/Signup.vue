@@ -31,7 +31,7 @@ const submitForm = async () => {
 
   try {
     const response = await axios.post(
-      "http://localhost:5000/api/signup",
+      "http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:5000/api/signup",
       formData,
     );
     console.log(response.data);

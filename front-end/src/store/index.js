@@ -28,7 +28,8 @@ export default createStore({
     maxHistoricalEntries: 20,
     selectedProjectNodeNames: [],
     projectsInfo: {},
-    selectedProjectId: null
+    selectedProjectId: null,
+    monitoringData : {}
   },
   mutations: {
     toggleConfigurator(state) {
@@ -81,6 +82,9 @@ export default createStore({
     setProjects(state, projects) {
       state.projects = projects;
     },
+    getMonitoringData(state, monitoringData) {
+      state.monitoringData = monitoringData;
+    },
     setNodes(state, nodes) {
       state.nodes = nodes; // 노드 데이터들 가져옴.
     },
@@ -132,7 +136,7 @@ export default createStore({
     signin({ commit }, credentials) {
       return new Promise((resolve, reject) => {
         axios
-          .post("http://163.180.117.23:5000/api/signin", credentials)
+          .post("http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:5000/api/signin", credentials)
           .then((response) => {
             commit("setAuthToken", response.data.access_token);
             commit("setUserEmail", response.data.email); // 이메일 저장
@@ -150,7 +154,7 @@ export default createStore({
     async fetchModels({ commit }) {
       try {
         const response = await axios.get(
-          "http://163.180.117.23:5000/api/data/models",
+          "http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:5000/api/data/models",
         );
         commit("setModels", response.data);
       } catch (error) {
@@ -160,7 +164,7 @@ export default createStore({
     async fetchDatasets({ commit }) {
       try {
         const response = await axios.get(
-          "http://163.180.117.23:5000/api/data/datasets",
+          "http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:5000/api/data/datasets",
         );
         commit("setDatasets", response.data);
       } catch (error) {
@@ -170,7 +174,7 @@ export default createStore({
     fetchProjects({ commit, state }) {
       axios
         .post(
-          "http://163.180.117.23:5000/api/data/projects",
+          "http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:5000/api/data/projects",
           {
             email: state.userEmail, // send the stored email
           },
@@ -191,7 +195,7 @@ export default createStore({
     async fetchNodes({ commit }) {
       try {
         const response = await axios.get(
-          "http://163.180.117.23:5000/api/data/nodes",
+          "http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:5000/api/data/nodes",
         );
         commit("setNodes", response.data); // Commit the node data to the state
       } catch (error) {
@@ -202,39 +206,10 @@ export default createStore({
       // 백엔드에서 노들의 모니터링 정보 요청
       try {
         const response = await axios.get(
-          "http://163.180.117.23:5000/api/data/nodemonitoring",
-        );
-        console.log("Fetched node monitoring data:", response.data); // Log the fetched data
-
-        // Process each node's metrics
-        Object.keys(response.data).forEach((nodeName) => {
-          const { realTime, historical } = response.data[nodeName];
-          console.log(`Processing data for node: ${nodeName}`); // Log node being processed
-
-          // Update real-time data
-          for (let key in realTime) {
-            commit("setRealTimeData", { nodeName, key, value: realTime[key] });
-            console.log(
-              `Updated real-time data for ${nodeName}: ${key} = ${realTime[key]}`,
-            ); // Log each real-time update
-          }
-
-          // Update historical data
-          for (let key in historical) {
-            console.log(
-              `Committing historical data for ${nodeName}: ${key} = ${historical[key]}`,
-            );
-            console.log(`Node: ${nodeName}, Key: ${key}, Value:`, historical[key]);
-            commit("addHistoricalDataEntry", {
-              nodeName,
-              key,
-              value: historical[key],
-            });
-            console.log(
-              `Updated historical data for ${nodeName}: ${key} = ${historical[key]}`,
-            ); // Log each historical update
-          }
-        });
+          "http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:5000/api/data/nodemonitoring",
+        )
+        commit("getMonitoringData", response.data); // commit the projects to the state
+      
       } catch (error) {
         console.error("Failed to fetch node data:", error);
       }
@@ -243,21 +218,23 @@ export default createStore({
       commit("setSelectedProjectNodeNames", nodeNames);
     },
     fetchProjectInfoById({ commit, state }, projectId) {
-      if (state.authToken && state.userEmail) { // Ensure userEmail check is also consistent with your authentication logic
-        axios.get(`http://163.180.117.23:5000/api/projects/${projectId}`, {
+      if (state.authToken && state.userEmail) { 
+        axios.get(`http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:5000/api/projects/${projectId}`, {
           headers: {
             Authorization: `Bearer ${state.authToken}`
           }
         })
         .then(response => {
+          
+          console.log("Project Info 111:", response.data); // 프로젝트 정보 콘솔에 출력
           commit('setProjectInfo', response.data);
         })
         .catch(error => {
           console.error(`Error fetching project ${projectId}:`, error);
         });
       }
-
     },
+    
     updateSelectedProjectId({ commit }, projectId) {           //선택된 프로젝트 Id 저장 하는 함수
       commit('setSelectedProjectId', projectId);
     }

@@ -73,3 +73,24 @@ const logout = () => {
     </div>
   </nav>
 </template>
+
+<style scoped>
+/* 폰트 스타일을 위한 공통 클래스 */
+.text-style {
+  font-size: 16px;  /* 폰트 크기 설정 */
+  font-weight: bold;  /* 폰트 가중치를 굵게 */
+  color: #ffffff;  /* 폰트 색상을 흰색으로 */
+}
+
+/* 사용자 이메일과 로그아웃 링크에 적용 */
+.nav-item .text-white, .nav-link {
+  font-size: 16px;  /* 폰트 크기 설정 */
+  font-weight: bold;  /* 폰트 가중치를 굵게 */
+  color: #ffffff;  /* 폰트 색상을 흰색으로 */
+}
+
+/* 추가적으로 아이콘과 텍스트 간 간격 조절 */
+.nav-item i {
+  margin-right: 5px;  /* 오른쪽 마진 추가 */
+}
+</style>

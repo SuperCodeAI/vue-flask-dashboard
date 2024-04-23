@@ -81,7 +81,7 @@ const createProject = async () => {
     };
 
     const response = await axios.post(
-      "http://163.180.117.23:5000/api/create-project",
+      "http://ec2-3-36-137-217.ap-northeast-2.compute.amazonaws.com:5000/api/create-project",
       formattedData,
       config,
     );
@@ -121,16 +121,12 @@ const datasetSelected = (datasetId) => {
   projectData.dataset = { dataset_id: datasetId };
 };
 
-const stringifyData = (value) => {
-  return JSON.stringify(value, null, 2); // Pretty print JSON
-};
-
 const lastSubmittedData = ref(null); // 백엔드로 마지막으로 전송된 데이터를 저장
 </script>
 
 <template>
   <div class="container-fluid">
-    <div class="py-5 container-fluid">
+    <div class="py-5-container-fluid">
       <div class="row">
         <div class="col-12">
           <ModelselectBox @update:modelValue="modelIdSelected" />
@@ -173,33 +169,42 @@ const lastSubmittedData = ref(null); // 백엔드로 마지막으로 전송된 �
         {{ isCreatingProject ? "생성 중" : "프로젝트 생성" }}
       </button>
     </div>
-    <div class="last-submitted-data-container">
-      <h3>Last Submitted Data</h3>
-      <pre>{{ stringifyData(lastSubmittedData) }}</pre>
-    </div>
+    
   </div>
 </template>
-
 <style scoped>
-/* ... other styles ... */
-
-/* Add padding to the bottom of the container to push the footer down */
-.container-fluid {
-  padding-bottom: 50px; /* Adjust the value as needed to create space above the footer */
+.py-5-container-fluid {
+  padding: 10px;
+  height: 270px;
 }
 
-/* Adjust the styling of the button and its container */
+.container-fluid {
+  padding: 10px; /* 모든 패딩 제거 */
+}
+
 .create-project-button-container {
-  text-align: right; /* Aligns the button to the right */
-  padding-top: 20px; /* Adds space above the button */
-  padding-bottom: 20px; /* Adds space below the button, above the footer */
+  text-align: right; /* 버튼을 오른쪽 정렬 */
+  padding: 0px 0px; /* 상단과 하단 여백 */
 }
 
 .create-project-button {
-  padding: 10px 30px; /* Larger padding for a larger button */
-  margin-top: 20px; /* Adds space above the button */
-  margin-bottom: 40px; /* Adds space below the button */
-  /* Other styling remains unchanged */
+  padding: 10px 30px; /* 버튼 내부 패딩 */
+  margin-top: 20px; /* 버튼 위쪽 여백 */
+  margin-bottom: 0; /* 버튼 아래쪽 여백 제거 */
+  background-color: #4CAF50; /* 진한 초록색 배경 */
+  color: white; /* 텍스트 색상을 흰색으로 변경 */
+  font-size: 18px; /* 글꼴 크기 증가 */
+  font-weight: bold; /* 글꼴 두께를 굵게 */
+  border: none; /* 테두리 제거 */
+  border-radius: 8px; /* 둥근 모서리 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 추가 */
+  cursor: pointer;
+  transition: all 0.3s ease; /* 부드러운 전환 효과 */
+}
+
+.create-project-button:hover {
+  background-color: #45a049; /* 호버 상태의 배경색 변경 */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* 호버 시 그림자 확대 */
 }
 
 .last-submitted-data-container {
@@ -210,18 +215,18 @@ const lastSubmittedData = ref(null); // 백엔드로 마지막으로 전송된 �
 }
 
 button {
-  border-radius: 5px; /* Adjust the pixel value to control the roundness */
-  background-color: #90ee90; /* This is a light green color */
-  border: none; /* Removes the default border */
-  padding: 10px 20px; /* Adds some padding inside the button */
-  color: rgb(0, 0, 0); /* Changes the text color */
-  font-size: 16px; /* Adjust the font size as needed */
-  cursor: pointer; /* Changes the cursor to a pointer when hovering over the button */
-  transition: background-color 0.3s; /* Smooth transition for background color */
+  border-radius: 5px; /* 버튼 모서리 둥글게 */
+  background-color: #90ee90; /* 밝은 초록색 배경 */
+  border: none; /* 테두리 없음 */
+  padding: 10px 20px; /* 내부 패딩 */
+  color: rgb(0, 0, 0); /* 글자 색상 */
+  font-size: 16px; /* 글자 크기 */
+  cursor: pointer; /* 커서 포인터 */
+  transition: background-color 0.3s; /* 배경색 변경 애니메이션 */
+  margin-right : 10px;
 }
 
 button:hover {
-  background-color: #76c893; /* Slightly darker green color for the hover state */
+  background-color: #76c893; /* 버튼 호버 색상 변경 */
 }
-/* ... */
 </style>
